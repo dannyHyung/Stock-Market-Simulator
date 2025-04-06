@@ -1,0 +1,26 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import Dashboard from './pages/Dashboard';
+import Auth from './pages/Auth';
+import Leaderboard from './pages/Leaderboard';
+import Market from './pages/Market';
+import Layout from './components/Layout/Layout';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Auth />} />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="market" element={<Market />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
