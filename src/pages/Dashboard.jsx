@@ -1,38 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserPortfolio, updateStockPrices, getPortfolioHistory, updatePortfolioHistory } from '../services/firestore';
 import { getMultipleStockPrices } from '../services/stocksApi';
+import PortfolioChart from '../components/Dashboard/PortfolioChart';
 import StocksTable from '../components/Dashboard/StocksTable';
-import { format, subDays, isAfter } from 'date-fns';
 import { Box, Grid, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert, Button } from '@mui/material';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { green, red } from '@mui/material/colors';
-import { Line } from 'react-chartjs-2';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler,
-} from 'chart.js';
-
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler
-);
 
 export default function Dashboard() {
     const { currentUser } = useAuth();
@@ -143,69 +118,6 @@ export default function Dashboard() {
         }
       };
 
-    // Prepare chart data
-    const prepareChartData = () => {
-        // Sort history by timestamp
-        const sortedHistory = [...portfolioHistory].sort((a, b) =>
-            new Date(a.timestamp.seconds * 1000) - new Date(b.timestamp.seconds * 1000)
-        );
-
-        // Get data for the last 7 days
-        const sevenDaysAgo = subDays(new Date(), 7);
-        const recentHistory = sortedHistory.filter(item =>
-            isAfter(new Date(item.timestamp.seconds * 1000), sevenDaysAgo)
-        );
-
-        // Format data for Chart.js
-        const labels = recentHistory.map(item =>
-            format(new Date(item.timestamp.seconds * 1000), 'MMM dd')
-        );
-
-        const data = recentHistory.map(item => item.value);
-
-        return {
-            labels,
-            datasets: [
-                {
-                    label: 'Portfolio Value',
-                    data,
-                    fill: true,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    tension: 0.4,
-                },
-            ],
-        };
-    };
-
-    // Chart options
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false,
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (context) {
-                        return `$${context.raw.toFixed(2)}`;
-                    }
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: false,
-                ticks: {
-                    callback: function (value) {
-                        return '$' + value.toFixed(2);
-                    }
-                }
-            }
-        },
-        maintainAspectRatio: false
-    };
-
     if (loading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
             <CircularProgress />
@@ -222,20 +134,7 @@ export default function Dashboard() {
             </Typography>
 
             {/* Portfolio Chart */}
-            <Paper elevation={3} sx={{ p: 3, mb: 4, height: 300 }}>
-                {/* <Typography variant="h6" gutterBottom>
-                    Portfolio Value History
-                </Typography> */}
-                {portfolioHistory.length > 1 ? (
-                    <Line data={prepareChartData()} options={chartOptions} height={250} />
-                ) : (
-                    <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                        <Typography color="text.secondary">
-                            Not enough data to display chart. Check back later as you use the app.
-                        </Typography>
-                    </Box>
-                )}
-            </Paper>
+            <PortfolioChart portfolioHistory={portfolioHistory} loading={loading} />
 
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12} md={4}>
