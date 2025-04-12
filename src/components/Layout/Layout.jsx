@@ -49,7 +49,7 @@ export default function Layout() {
       const name = await getUserDisplayName(currentUser.uid);
       setUserName(name || currentUser.email.split('@')[0]);
     }
-    
+
     fetchDisplayName();
   }, [currentUser, navigate]);
 
@@ -177,8 +177,29 @@ export default function Layout() {
               >
                 <ListItemButton
                   selected={location.pathname === item.path}
+                  sx={{
+                    color: theme => theme.palette.mode === 'dark'
+                      ? 'white'
+                      : 'rgba(0, 0, 0, 0.87)',
+                    '&.Mui-selected': {
+                      backgroundColor: theme => theme.palette.mode === 'dark'
+                        ? 'rgba(144, 202, 249, 0.16)'
+                        : 'rgba(25, 118, 210, 0.08)',
+                      color: theme => theme.palette.mode === 'dark'
+                        ? '#90caf9'
+                        : '#1976d2',
+                    }
+                  }}
                 >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemIcon
+                    sx={{
+                      color: theme => theme.palette.mode === 'dark'
+                        ? 'white'
+                        : 'inherit'
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
                   <ListItemText primary={item.text} />
                 </ListItemButton>
               </ListItem>
@@ -217,8 +238,29 @@ export default function Layout() {
                   >
                     <ListItemButton
                       selected={location.pathname === item.path}
+                      sx={{
+                        color: theme => theme.palette.mode === 'dark'
+                          ? 'white'
+                          : 'rgba(0, 0, 0, 0.87)',
+                        '&.Mui-selected': {
+                          backgroundColor: theme => theme.palette.mode === 'dark'
+                            ? 'rgba(144, 202, 249, 0.16)'
+                            : 'rgba(25, 118, 210, 0.08)',
+                          color: theme => theme.palette.mode === 'dark'
+                            ? '#90caf9'
+                            : '#1976d2',
+                        }
+                      }}
                     >
-                      <ListItemIcon>{item.icon}</ListItemIcon>
+                      <ListItemIcon
+                        sx={{
+                          color: theme => theme.palette.mode === 'dark'
+                            ? 'white'
+                            : 'inherit'
+                        }}
+                      >
+                        {item.icon}
+                      </ListItemIcon>
                       <ListItemText primary={item.text} />
                     </ListItemButton>
                   </ListItem>
