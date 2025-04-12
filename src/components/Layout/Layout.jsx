@@ -113,9 +113,30 @@ export default function Layout() {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              Stock Market Simulator
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+              <ShowChartIcon sx={{
+                mr: 1,
+                color: '#21CBF3',
+              }} />
+              <Typography
+                variant="h5"
+                component="div"
+                sx={{
+                  fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontWeight: 700,
+                  background: theme => theme.palette.mode === 'dark'
+                    ? 'linear-gradient(45deg, #1976d2 30%, #21CBF3 90%)'
+                    : 'linear-gradient(45deg, #ffffff 30%, #f0f0f0 90%)', // White gradient in light mode
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  letterSpacing: '0.5px',
+                  fontSize: { xs: '1rem', sm: '1.5rem' },
+                  lineHeight: { xs: 1.2, sm: 1.5 },
+                }}
+              >
+                Stock Market Simulator
+              </Typography>
+            </Box>
             <IconButton onClick={toggleDarkMode} color="inherit">
               {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
