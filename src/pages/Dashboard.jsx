@@ -4,7 +4,8 @@ import { getUserPortfolio, updateStockPrices, getPortfolioHistory, updatePortfol
 import { getMultipleStockPrices } from '../services/stocksApi';
 import PortfolioChart from '../components/Dashboard/PortfolioChart';
 import StocksTable from '../components/Dashboard/StocksTable';
-import { Box, Grid, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert, Button } from '@mui/material';
+import MarketStatusIndicator from '../components/Dashboard/MarketStatusIndicator';
+import { Box, Grid, Card, CardContent, Typography, CircularProgress, Alert } from '@mui/material';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { green, red } from '@mui/material/colors';
@@ -109,14 +110,14 @@ export default function Dashboard() {
 
     const refreshPortfolio = async () => {
         try {
-          const portfolioData = await getUserPortfolio(currentUser.uid);
-          setPortfolio(portfolioData);
-          
-          // Any other portfolio refresh logic you need
+            const portfolioData = await getUserPortfolio(currentUser.uid);
+            setPortfolio(portfolioData);
+
+            // Any other portfolio refresh logic you need
         } catch (error) {
-          console.error('Error refreshing portfolio:', error);
+            console.error('Error refreshing portfolio:', error);
         }
-      };
+    };
 
     if (loading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -129,9 +130,12 @@ export default function Dashboard() {
 
     return (
         <Box>
-            <Typography variant="h4" component="h1" gutterBottom>
-                Your Portfolio
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Your Portfolio
+                </Typography>
+                <MarketStatusIndicator />
+            </Box>
 
             {/* Portfolio Chart */}
             <PortfolioChart portfolioHistory={portfolioHistory} loading={loading} />
