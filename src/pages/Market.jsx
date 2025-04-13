@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { searchStocks, getStockPrice } from '../services/stocksApi';
 import { buyStock, sellStock, getUserPortfolio } from '../services/firestore';
+import ExtendedHoursPrice from '../components/StockMarket/ExtendedHoursPrice';
+import { getCurrentPrice, calculateMaxBuyQuantity, calculateTransactionAmount } from '../utils/stockUtils';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -48,10 +50,10 @@ export default function Market() {
   async function handleSearch(e) {
     e?.preventDefault();
     if (!searchQuery) return;
-    
+
     setLoading(true);
     setMessage({ text: '', type: '' });
-    
+
     try {
       const results = await searchStocks(searchQuery);
       setSearchResults(results);
@@ -70,15 +72,15 @@ export default function Market() {
     setSelectedStock(stock);
     setStockDetails(null);
     setQuantity(1);
-    
+
     try {
       const details = await getStockPrice(stock.symbol);
       setStockDetails(details);
-      
+
       // Get user's portfolio to check if they own this stock
       const portfolioData = await getUserPortfolio(currentUser.uid);
       setPortfolio(portfolioData);
-      
+
       // Check if user owns this stock and set trade type
       const ownedStock = portfolioData.stocks.find(s => s.symbol === stock.symbol);
       setTradeType(ownedStock ? 'sell' : 'buy');
@@ -92,27 +94,28 @@ export default function Market() {
   // Handle buying stock
   async function handleBuyStock() {
     if (!selectedStock || !stockDetails || quantity <= 0) return;
-    
+
     setLoading(true);
     setMessage({ text: '', type: '' });
-    
+
     try {
-      const price = stockDetails.regularMarketPrice;
+      const currentPrice = getCurrentPrice(stockDetails);
+
       const success = await buyStock(
-        currentUser.uid, 
+        currentUser.uid,
         selectedStock.symbol,
         selectedStock.shortname || selectedStock.longname,
         quantity,
-        price
+        currentPrice
       );
-      
+
       if (success) {
-        setMessage({ 
-          text: `Successfully purchased ${quantity} shares of ${selectedStock.symbol} for $${(price * quantity).toFixed(2)}`, 
-          type: 'success' 
+        setMessage({
+          text: `Successfully purchased ${quantity} shares of ${selectedStock.symbol} for $${(currentPrice * quantity).toFixed(2)}`,
+          type: 'success'
         });
         setQuantity(1);
-        
+
         // Refresh portfolio data
         const portfolioData = await getUserPortfolio(currentUser.uid);
         setPortfolio(portfolioData);
@@ -126,41 +129,42 @@ export default function Market() {
     }
   }
 
-  // Handle selling stock
+  // Update handleSellStock function
   async function handleSellStock() {
     if (!selectedStock || !stockDetails || quantity <= 0) return;
-    
+
     setLoading(true);
     setMessage({ text: '', type: '' });
-    
+
     try {
       const ownedStock = portfolio.stocks.find(s => s.symbol === selectedStock.symbol);
-      
+
       if (!ownedStock || ownedStock.quantity < quantity) {
         setMessage({ text: `You don't own enough shares to sell`, type: 'error' });
         setLoading(false);
         return;
       }
-      
-      const price = stockDetails.regularMarketPrice;
+
+      const currentPrice = getCurrentPrice(stockDetails);
+
       const success = await sellStock(
         currentUser.uid,
         selectedStock.symbol,
         quantity,
-        price
+        currentPrice
       );
-      
+
       if (success) {
-        setMessage({ 
-          text: `Successfully sold ${quantity} shares of ${selectedStock.symbol} for $${(price * quantity).toFixed(2)}`, 
-          type: 'success' 
+        setMessage({
+          text: `Successfully sold ${quantity} shares of ${selectedStock.symbol} for $${(currentPrice * quantity).toFixed(2)}`,
+          type: 'success'
         });
         setQuantity(1);
-        
+
         // Refresh portfolio data
         const portfolioData = await getUserPortfolio(currentUser.uid);
         setPortfolio(portfolioData);
-        
+
         // If user sold all shares, set trade type back to buy
         const updatedOwnedStock = portfolioData.stocks.find(s => s.symbol === selectedStock.symbol);
         if (!updatedOwnedStock) {
@@ -176,19 +180,10 @@ export default function Market() {
     }
   }
 
-  // Calculate maximum quantity user can buy with available cash
-  function calculateMaxBuyQuantity() {
-    if (!stockDetails || !portfolio) return 0;
-    
-    const price = stockDetails.regularMarketPrice;
-    const maxQuantity = Math.floor(portfolio.cash / price);
-    return maxQuantity;
-  }
-
   // Calculate maximum quantity user can sell
   function calculateMaxSellQuantity() {
     if (!selectedStock || !portfolio) return 0;
-    
+
     const ownedStock = portfolio.stocks.find(s => s.symbol === selectedStock.symbol);
     return ownedStock ? ownedStock.quantity : 0;
   }
@@ -203,12 +198,12 @@ export default function Market() {
       <Typography variant="h4" component="h1" gutterBottom>
         Stock Market
       </Typography>
-      
+
       {/* Search Form */}
-      <Paper 
-        component="form" 
-        onSubmit={handleSearch} 
-        elevation={2} 
+      <Paper
+        component="form"
+        onSubmit={handleSearch}
+        elevation={2}
         sx={{ p: 2, mb: 4, display: 'flex', alignItems: 'center' }}
       >
         <TextField
@@ -226,16 +221,16 @@ export default function Market() {
           }}
           sx={{ mr: 2 }}
         />
-        <Button 
-          type="submit" 
-          variant="contained" 
+        <Button
+          type="submit"
+          variant="contained"
           disabled={loading}
           sx={{ height: 56 }}
         >
           {loading ? 'Searching...' : 'Search'}
         </Button>
       </Paper>
-      
+
       {/* Search Results */}
       {searchResults.length > 0 && !selectedStock && (
         <Paper elevation={3} sx={{ mb: 4 }}>
@@ -276,7 +271,7 @@ export default function Market() {
           </TableContainer>
         </Paper>
       )}
-      
+
       {/* Stock Details */}
       {selectedStock && (
         <Paper elevation={3} sx={{ mb: 4 }}>
@@ -296,9 +291,9 @@ export default function Market() {
             }
             subheader={stockDetails ? stockDetails.exchangeName : ''}
           />
-          
+
           <Divider />
-          
+
           <CardContent>
             {loading ? (
               <Box sx={{ p: 2 }}>
@@ -312,9 +307,9 @@ export default function Market() {
                   <Typography variant="h3" component="div">
                     ${stockDetails.regularMarketPrice.toFixed(2)}
                   </Typography>
-                  <Box 
-                    sx={{ 
-                      display: 'flex', 
+                  <Box
+                    sx={{
+                      display: 'flex',
                       alignItems: 'center',
                       color: stockDetails.regularMarketChange >= 0 ? green[500] : red[500]
                     }}
@@ -326,12 +321,13 @@ export default function Market() {
                     )}
                     <Typography variant="body1" component="span">
                       {stockDetails.regularMarketChange >= 0 ? '+' : ''}
-                      {stockDetails.regularMarketChange.toFixed(2)} 
+                      {stockDetails.regularMarketChange.toFixed(2)}
                       ({(stockDetails.regularMarketChangePercent * 100).toFixed(2)}%)
                     </Typography>
                   </Box>
+                  <ExtendedHoursPrice stockDetails={stockDetails} />
                 </Grid>
-                
+
                 <Grid item xs={12} md={6}>
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
@@ -356,7 +352,7 @@ export default function Market() {
             ) : (
               <Typography>Loading stock details...</Typography>
             )}
-            
+
             {/* Portfolio Position */}
             {portfolio && portfolio.stocks.some(stock => stock.symbol === selectedStock.symbol) && (
               <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
@@ -367,26 +363,26 @@ export default function Market() {
                 </Typography>
               </Box>
             )}
-            
+
             {/* Trading Interface */}
             {stockDetails && (
               <Box sx={{ mt: 4 }}>
-                <Tabs 
-                  value={tradeType} 
+                <Tabs
+                  value={tradeType}
                   onChange={(e, newValue) => setTradeType(newValue)}
                   sx={{ mb: 2 }}
                 >
-                  <Tab 
-                    label="Buy" 
-                    value="buy" 
+                  <Tab
+                    label="Buy"
+                    value="buy"
                   />
-                  <Tab 
-                    label="Sell" 
-                    value="sell" 
+                  <Tab
+                    label="Sell"
+                    value="sell"
                     disabled={!portfolio || !portfolio.stocks.some(stock => stock.symbol === selectedStock.symbol)}
                   />
                 </Tabs>
-                
+
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <TextField
@@ -399,20 +395,20 @@ export default function Market() {
                         inputProps: { min: 1 }
                       }}
                       helperText={
-                        tradeType === 'buy' 
-                          ? `Max: ${calculateMaxBuyQuantity()} shares` 
+                        tradeType === 'buy'
+                          ? `Max: ${calculateMaxBuyQuantity(stockDetails, portfolio)} shares`
                           : `Max: ${calculateMaxSellQuantity()} shares`
                       }
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} md={6}>
                     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                       <Typography variant="subtitle2" color="text.secondary">
                         Estimated {tradeType === 'buy' ? 'Cost' : 'Proceeds'}
                       </Typography>
                       <Typography variant="h6" sx={{ mb: 1 }}>
-                        ${(stockDetails.regularMarketPrice * quantity).toFixed(2)}
+                        ${calculateTransactionAmount(stockDetails, quantity)}
                       </Typography>
                       {portfolio && (
                         <Typography variant="caption" color="text.secondary">
@@ -422,27 +418,27 @@ export default function Market() {
                     </Box>
                   </Grid>
                 </Grid>
-                
+
                 <Button
                   variant="contained"
                   color={tradeType === 'buy' ? 'primary' : 'secondary'}
                   fullWidth
                   sx={{ mt: 3 }}
                   onClick={tradeType === 'buy' ? handleBuyStock : handleSellStock}
-                  disabled={loading || 
+                  disabled={loading ||
                     (tradeType === 'buy' && (
-                      !portfolio || 
+                      !portfolio ||
                       portfolio.cash < stockDetails.regularMarketPrice * quantity
-                    )) || 
+                    )) ||
                     (tradeType === 'sell' && (
-                      !portfolio || 
+                      !portfolio ||
                       !portfolio.stocks.some(stock => stock.symbol === selectedStock.symbol) ||
                       portfolio.stocks.find(stock => stock.symbol === selectedStock.symbol).quantity < quantity
                     ))
                   }
                 >
-                  {loading 
-                    ? 'Processing...' 
+                  {loading
+                    ? 'Processing...'
                     : `${tradeType === 'buy' ? 'Buy' : 'Sell'} ${quantity} Share${quantity !== 1 ? 's' : ''}`
                   }
                 </Button>
@@ -451,16 +447,16 @@ export default function Market() {
           </CardContent>
         </Paper>
       )}
-      
+
       {/* Messages */}
       <Snackbar
         open={Boolean(message.text)}
         autoHideDuration={6000}
         onClose={handleCloseMessage}
       >
-        <Alert 
-          onClose={handleCloseMessage} 
-          severity={message.type === 'success' ? 'success' : 'error'} 
+        <Alert
+          onClose={handleCloseMessage}
+          severity={message.type === 'success' ? 'success' : 'error'}
           sx={{ width: '100%' }}
         >
           {message.text}

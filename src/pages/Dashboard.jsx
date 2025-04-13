@@ -46,8 +46,23 @@ export default function Dashboard() {
                         let totalDailyChange = 0;
 
                         updatedPortfolio.stocks.forEach(stock => {
-                            const currentPrice = stockPrices[stock.symbol]?.regularMarketPrice || stock.averagePrice;
-                            const previousClose = stockPrices[stock.symbol]?.regularMarketPreviousClose || currentPrice;
+                            // Get the most current price available (after-hours, pre-market, or regular)
+                            const stockData = stockPrices[stock.symbol];
+                            let currentPrice;
+
+                            if (stockData) {
+                                if (stockData.isAfterHours && stockData.postMarketPrice) {
+                                    currentPrice = stockData.postMarketPrice;
+                                } else if (stockData.isPreMarket && stockData.preMarketPrice) {
+                                    currentPrice = stockData.preMarketPrice;
+                                } else {
+                                    currentPrice = stockData.regularMarketPrice;
+                                }
+                            } else {
+                                currentPrice = stock.averagePrice;
+                            }
+
+                            const previousClose = stockData?.regularMarketPreviousClose || currentPrice;
                             const stockValue = stock.quantity * currentPrice;
                             const dailyChangeValue = stock.quantity * (currentPrice - previousClose);
 
@@ -98,12 +113,17 @@ export default function Dashboard() {
             const now = new Date();
             const day = now.getDay();
             const hours = now.getHours();
-
-            // Only refresh during market hours (9:30 AM - 4:00 PM EST, Mon-Fri)
-            if (day >= 1 && day <= 5 && ((hours >= 9 && now.getMinutes() >= 30) || hours > 9) && hours < 16) {
-                fetchPortfolio();
+            const minutes = now.getMinutes();
+            
+            // Extended hours: 4:00 AM - 8:00 PM EST, Mon-Fri
+            const isMarketDay = day >= 1 && day <= 5;
+            const isExtendedHours = isMarketDay && hours >= 4 && hours < 20;
+            
+            // Only update when the market is open (including extended hours)
+            if (isExtendedHours) {
+              fetchPortfolio();
             }
-        }, 60000); // Update every minute
+          }, 60000); // Update every minute
 
         return () => clearInterval(intervalId);
     }, [currentUser]);
