@@ -1,5 +1,5 @@
 import React from 'react';
-import { format, subDays, isAfter } from 'date-fns';
+import { format, subDays, parseISO, isAfter } from 'date-fns';
 import { Box, Typography, Paper, CircularProgress } from '@mui/material';
 import { Line } from 'react-chartjs-2';
 import {
@@ -66,7 +66,7 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
     
     // Filter to only include data points after the cutoff date
     const filteredDailyData = Object.entries(dailyData)
-      .filter(([dateStr]) => isAfter(new Date(dateStr), cutoffDate))
+      .filter(([dateStr]) => isAfter(parseISO(dateStr), cutoffDate))
       .reduce((acc, [dateStr, value]) => {
         acc[dateStr] = value;
         return acc;
