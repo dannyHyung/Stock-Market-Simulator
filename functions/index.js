@@ -44,7 +44,17 @@ exports.getStockPrice = functions.https.onRequest((request, response) => {
                 modules: ['price']
             });
 
-            return response.json(result.price);
+            // Enhanced response with clearly marked market session data
+            const priceData = result.price;
+
+            // Add an indicator for extended hours trading
+            if (priceData.postMarketPrice) {
+                priceData.isAfterHours = true;
+            } else if (priceData.preMarketPrice) {
+                priceData.isPreMarket = true;
+            }
+
+            return response.json(priceData);
         } catch (error) {
             console.error('Error fetching stock data:', error);
             return response.status(500).json({
@@ -69,8 +79,8 @@ exports.searchStocks = functions.https.onRequest((request, response) => {
 
             const results = await yahooFinance.search(query);
             const filteredResults = results.quotes.filter(quote =>
-                quote.quoteType === 'EQUITY' &&
-                (quote.exchange === 'NMS' || quote.exchange === 'NYQ')
+                (quote.quoteType === 'EQUITY' || quote.quoteType === 'ETF') &&
+                ['NMS', 'NYQ', 'PCX', 'BTS', 'NCM', 'NGM', 'NSC', 'ARCX'].includes(quote.exchange)
             );
 
             return response.json(filteredResults);
@@ -85,8 +95,6 @@ exports.searchStocks = functions.https.onRequest((request, response) => {
 });
 
 // Get multiple stock prices
-// In functions/index.js, update the getMultipleStockPrices function:
-
 exports.getMultipleStockPrices = functions.https.onRequest((request, response) => {
     cors(request, response, async () => {
         try {
@@ -105,11 +113,19 @@ exports.getMultipleStockPrices = functions.https.onRequest((request, response) =
                 try {
                     if (symbol && symbol !== "NULL") {
                         const result = await yahooFinance.quoteSummary(symbol, { modules: ['price'] });
-                        stockData[symbol] = result.price;
+                        const priceData = result.price;
+
+                        // Add indicators for extended hours trading
+                        if (priceData.postMarketPrice) {
+                            priceData.isAfterHours = true;
+                        } else if (priceData.preMarketPrice) {
+                            priceData.isPreMarket = true;
+                        }
+
+                        stockData[symbol] = priceData;
                     }
                 } catch (error) {
                     console.error(`Error fetching data for symbol ${symbol}:`, error);
-                    // Add a placeholder or empty object for failed symbols
                     stockData[symbol] = { error: true };
                 }
             }
