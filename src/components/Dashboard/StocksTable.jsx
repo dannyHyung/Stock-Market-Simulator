@@ -214,7 +214,7 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                                 <TableCell align="right">Avg. Price</TableCell>
                                 <TableCell align="right">Current Price</TableCell>
                                 <TableCell align="right">Value</TableCell>
-                                <TableCell align="right">Gain/Loss</TableCell>
+                                <TableCell align="right">Total Gain/Loss</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
