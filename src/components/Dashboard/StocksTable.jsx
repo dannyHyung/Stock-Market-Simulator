@@ -5,6 +5,7 @@ import { buyStock, sellStock } from '../../services/firestore';
 import { getStockPrice } from '../../services/stocksApi';
 import ExtendedHoursPrice from '../StockMarket/ExtendedHoursPrice';
 import { getCurrentPrice, calculateMaxBuyQuantity, calculateTransactionAmount } from '../../utils/stockUtils';
+import WatchlistToggle from '../StockMarket/WatchlistToggle';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
@@ -281,9 +282,12 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                     <>
                         <DialogTitle>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Typography variant="h6">
-                                    {selectedStock.symbol} - {selectedStock.companyName}
-                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Typography variant="h6">
+                                        {selectedStock.symbol} - {selectedStock.companyName}
+                                    </Typography>
+                                    <WatchlistToggle stock={selectedStock} />
+                                </Box>
                                 <IconButton onClick={handleCloseDialog}>
                                     <CloseIcon />
                                 </IconButton>

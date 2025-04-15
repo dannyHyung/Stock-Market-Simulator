@@ -202,7 +202,7 @@ export async function getLeaderboard() {
 export async function updateStockPrices(userId, stockPrices) {
     const portfolioRef = doc(db, "portfolios", userId);
     const portfolioSnap = await getDoc(portfolioRef);
-                
+
     if (!portfolioSnap.exists()) return false;
 
     const portfolio = portfolioSnap.data();
@@ -229,68 +229,132 @@ export async function updatePortfolioHistory(userId, totalValue) {
     const historyRef = doc(db, "portfolioHistory", userId);
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize to start of day
-    
+
     try {
-      const historySnap = await getDoc(historyRef);
-      
-      if (historySnap.exists()) {
-        const historyData = historySnap.data();
-        const history = historyData.history || [];
-        
-        // Check if we already have an entry for today
-        const todayEntry = history.find(entry => {
-          const entryDate = entry.timestamp instanceof Date 
-            ? entry.timestamp 
-            : new Date(entry.timestamp.seconds * 1000);
-          
-          // Compare year, month, and day
-          return entryDate.getFullYear() === today.getFullYear() &&
-                 entryDate.getMonth() === today.getMonth() &&
-                 entryDate.getDate() === today.getDate();
-        });
-        
-        if (todayEntry) {
-          // Update today's entry
-          const updatedHistory = history.map(entry => {
-            const entryDate = entry.timestamp instanceof Date 
-              ? entry.timestamp 
-              : new Date(entry.timestamp.seconds * 1000);
-            
-            if (entryDate.getFullYear() === today.getFullYear() &&
-                entryDate.getMonth() === today.getMonth() &&
-                entryDate.getDate() === today.getDate()) {
-              return { timestamp: today, value: totalValue };
+        const historySnap = await getDoc(historyRef);
+
+        if (historySnap.exists()) {
+            const historyData = historySnap.data();
+            const history = historyData.history || [];
+
+            // Check if we already have an entry for today
+            const todayEntry = history.find(entry => {
+                const entryDate = entry.timestamp instanceof Date
+                    ? entry.timestamp
+                    : new Date(entry.timestamp.seconds * 1000);
+
+                // Compare year, month, and day
+                return entryDate.getFullYear() === today.getFullYear() &&
+                    entryDate.getMonth() === today.getMonth() &&
+                    entryDate.getDate() === today.getDate();
+            });
+
+            if (todayEntry) {
+                // Update today's entry
+                const updatedHistory = history.map(entry => {
+                    const entryDate = entry.timestamp instanceof Date
+                        ? entry.timestamp
+                        : new Date(entry.timestamp.seconds * 1000);
+
+                    if (entryDate.getFullYear() === today.getFullYear() &&
+                        entryDate.getMonth() === today.getMonth() &&
+                        entryDate.getDate() === today.getDate()) {
+                        return { timestamp: today, value: totalValue };
+                    }
+                    return entry;
+                });
+
+                await setDoc(historyRef, { history: updatedHistory });
+            } else {
+                // Add new entry for today
+                await updateDoc(historyRef, {
+                    history: arrayUnion({ timestamp: today, value: totalValue })
+                });
             }
-            return entry;
-          });
-          
-          await setDoc(historyRef, { history: updatedHistory });
         } else {
-          // Add new entry for today
-          await updateDoc(historyRef, {
-            history: arrayUnion({ timestamp: today, value: totalValue })
-          });
+            // Create new history document with first entry
+            await setDoc(historyRef, {
+                history: [{ timestamp: today, value: totalValue }]
+            });
         }
-      } else {
-        // Create new history document with first entry
-        await setDoc(historyRef, {
-          history: [{ timestamp: today, value: totalValue }]
-        });
-      }
     } catch (error) {
-      console.error("Error updating portfolio history:", error);
+        console.error("Error updating portfolio history:", error);
     }
-  }
+}
 
 
 // Get portfolio value history
 export async function getPortfolioHistory(userId) {
     const historyRef = doc(db, "portfolioHistory", userId);
     const historySnap = await getDoc(historyRef);
-    
+
     if (historySnap.exists()) {
-      return historySnap.data().history;
+        return historySnap.data().history;
     }
-    
+
     return [];
-  }
+}
+
+// Get user's watchlist
+export async function getUserWatchlist(userId) {
+    const watchlistRef = doc(db, "watchlists", userId);
+    const watchlistSnap = await getDoc(watchlistRef);
+
+    if (watchlistSnap.exists()) {
+        return watchlistSnap.data().stocks || [];
+    }
+
+    return [];
+}
+
+// Add stock to watchlist
+export async function addToWatchlist(userId, stock) {
+    const watchlistRef = doc(db, "watchlists", userId);
+    const watchlistSnap = await getDoc(watchlistRef);
+
+    const stockData = {
+        symbol: stock.symbol,
+        companyName: stock.companyName || stock.shortname || stock.longname,
+        addedAt: new Date()
+    };
+
+    if (watchlistSnap.exists()) {
+        // Check if stock already exists in watchlist
+        const watchlist = watchlistSnap.data().stocks || [];
+        if (!watchlist.some(item => item.symbol === stock.symbol)) {
+            await updateDoc(watchlistRef, {
+                stocks: arrayUnion(stockData)
+            });
+        }
+    } else {
+        // Create new watchlist document
+        await setDoc(watchlistRef, {
+            stocks: [stockData]
+        });
+    }
+
+    return true;
+}
+
+// Remove stock from watchlist
+export async function removeFromWatchlist(userId, symbol) {
+    const watchlistRef = doc(db, "watchlists", userId);
+    const watchlistSnap = await getDoc(watchlistRef);
+
+    if (watchlistSnap.exists()) {
+        const watchlist = watchlistSnap.data().stocks || [];
+        const updatedWatchlist = watchlist.filter(stock => stock.symbol !== symbol);
+
+        await updateDoc(watchlistRef, {
+            stocks: updatedWatchlist
+        });
+    }
+
+    return true;
+}
+
+// Check if stock is in watchlist
+export async function isInWatchlist(userId, symbol) {
+    const watchlist = await getUserWatchlist(userId);
+    return watchlist.some(stock => stock.symbol === symbol);
+}

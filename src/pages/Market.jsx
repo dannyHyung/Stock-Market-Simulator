@@ -4,6 +4,8 @@ import { searchStocks, getStockPrice } from '../services/stocksApi';
 import { buyStock, sellStock, getUserPortfolio } from '../services/firestore';
 import ExtendedHoursPrice from '../components/StockMarket/ExtendedHoursPrice';
 import { getCurrentPrice, calculateMaxBuyQuantity, calculateTransactionAmount } from '../utils/stockUtils';
+import Watchlist from '../components/StockMarket/Watchlist';
+import WatchlistToggle from '../components/StockMarket/WatchlistToggle';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -45,6 +47,7 @@ export default function Market() {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [portfolio, setPortfolio] = useState(null);
   const [tradeType, setTradeType] = useState('buy');
+  const [showWatchlist, setShowWatchlist] = useState(true);
 
   // Search for stocks
   async function handleSearch(e) {
@@ -278,9 +281,12 @@ export default function Market() {
           <CardHeader
             title={
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="h6">
-                  {selectedStock.shortname || selectedStock.longname} ({selectedStock.symbol})
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="h6">
+                    {selectedStock.shortname || selectedStock.longname} ({selectedStock.symbol})
+                  </Typography>
+                  <WatchlistToggle stock={selectedStock} />
+                </Box>
                 <IconButton onClick={() => {
                   setSelectedStock(null);
                   setStockDetails(null);
@@ -446,6 +452,26 @@ export default function Market() {
             )}
           </CardContent>
         </Paper>
+      )}
+
+      {/* Watchlist */}
+      {!selectedStock && (
+        <Box sx={{ mt: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">Watchlist</Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => setShowWatchlist(!showWatchlist)}
+            >
+              {showWatchlist ? 'Hide' : 'Show'}
+            </Button>
+          </Box>
+
+          {showWatchlist && (
+            <Watchlist onSelectStock={handleSelectStock} />
+          )}
+        </Box>
       )}
 
       {/* Messages */}
