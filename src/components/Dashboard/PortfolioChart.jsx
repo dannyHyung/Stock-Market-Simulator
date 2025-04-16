@@ -35,17 +35,17 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
 
     // Convert Firestore timestamps to JavaScript Date objects
     const historyWithDates = portfolioHistory.map(item => ({
-      timestamp: item.timestamp instanceof Date 
-        ? item.timestamp 
+      timestamp: item.timestamp instanceof Date
+        ? item.timestamp
         : new Date(item.timestamp.seconds * 1000),
       value: item.value
     }));
 
     // Sort history by timestamp (oldest first)
-    const sortedHistory = [...historyWithDates].sort((a, b) => 
+    const sortedHistory = [...historyWithDates].sort((a, b) =>
       a.timestamp - b.timestamp
     );
-    
+
     // Group by day to ensure one data point per day
     const dailyData = {};
     sortedHistory.forEach(item => {
@@ -53,17 +53,17 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
       // Take the latest entry for each day
       dailyData[dateKey] = item.value;
     });
-    
+
     // Get the earliest timestamp for limit calculation
     const firstEntryDate = sortedHistory[0].timestamp;
     const daysSinceStart = Math.ceil(
       (new Date() - firstEntryDate) / (1000 * 60 * 60 * 24)
     );
-    
+
     // Determine how many days to show (up to 30 days or all available days)
     const daysToShow = Math.min(30, daysSinceStart);
     const cutoffDate = subDays(new Date(), daysToShow);
-    
+
     // Filter to only include data points after the cutoff date
     const filteredDailyData = Object.entries(dailyData)
       .filter(([dateStr]) => isAfter(parseISO(dateStr), cutoffDate))
@@ -71,14 +71,14 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
         acc[dateStr] = value;
         return acc;
       }, {});
-    
+
     // Format for chart.js
-    const labels = Object.keys(filteredDailyData).map(dateStr => 
-      format(new Date(dateStr), 'MMM d')
+    const labels = Object.keys(filteredDailyData).map(dateStr =>
+      format(parseISO(dateStr), 'MMM d')
     );
-    
+
     const data = Object.values(filteredDailyData);
-    
+
     return {
       labels,
       datasets: [
@@ -103,7 +103,7 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
       },
       tooltip: {
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             return `$${context.raw.toFixed(2)}`;
           }
         }
@@ -113,7 +113,7 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
       y: {
         beginAtZero: false,
         ticks: {
-          callback: function(value) {
+          callback: function (value) {
             return '$' + value.toFixed(2);
           }
         }
