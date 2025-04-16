@@ -94,41 +94,61 @@ exports.searchStocks = functions.https.onRequest((request, response) => {
     });
 });
 
-// Get multiple stock prices
+// Get multiple stock prices with batching
 exports.getMultipleStockPrices = functions.https.onRequest((request, response) => {
     cors(request, response, async () => {
         try {
             const symbols = request.body.symbols;
 
-            if (!symbols || !Array.isArray(symbols)) {
+            if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
                 return response.status(400).json({
                     error: 'Invalid or missing symbols array in request body'
                 });
             }
 
+            // Filter out any empty symbols
+            const validSymbols = symbols.filter(symbol => symbol && symbol !== "NULL");
+
+            if (validSymbols.length === 0) {
+                return response.json({});
+            }
+
+            // Get quotes for all symbols in a single request
+            const quotes = await yahooFinance.quote(validSymbols);
+
+            // Format the response to match your existing structure
             const stockData = {};
 
-            // Process each symbol individually to handle errors per symbol
-            for (const symbol of symbols) {
-                try {
-                    if (symbol && symbol !== "NULL") {
-                        const result = await yahooFinance.quoteSummary(symbol, { modules: ['price'] });
-                        const priceData = result.price;
+            // Handle both single quotes and array responses
+            const quotesArray = Array.isArray(quotes) ? quotes : [quotes];
 
-                        // Add indicators for extended hours trading
-                        if (priceData.postMarketPrice) {
-                            priceData.isAfterHours = true;
-                        } else if (priceData.preMarketPrice) {
-                            priceData.isPreMarket = true;
-                        }
+            quotesArray.forEach(quote => {
+                const symbol = quote.symbol;
 
-                        stockData[symbol] = priceData;
-                    }
-                } catch (error) {
-                    console.error(`Error fetching data for symbol ${symbol}:`, error);
-                    stockData[symbol] = { error: true };
+                // Transform quote into a format similar to your current response
+                stockData[symbol] = {
+                    regularMarketPrice: quote.regularMarketPrice,
+                    regularMarketChange: quote.regularMarketChange,
+                    regularMarketChangePercent: quote.regularMarketChangePercent,
+                    regularMarketOpen: quote.regularMarketOpen,
+                    regularMarketDayHigh: quote.regularMarketDayHigh,
+                    regularMarketDayLow: quote.regularMarketDayLow,
+                    regularMarketPreviousClose: quote.regularMarketPreviousClose,
+
+                    // Add extended hours data if available
+                    postMarketPrice: quote.postMarketPrice,
+                    postMarketChange: quote.postMarketChange,
+                    preMarketPrice: quote.preMarketPrice,
+                    preMarketChange: quote.preMarketChange
+                };
+
+                // Add indicators for extended hours trading
+                if (quote.postMarketPrice) {
+                    stockData[symbol].isAfterHours = true;
+                } else if (quote.preMarketPrice) {
+                    stockData[symbol].isPreMarket = true;
                 }
-            }
+            });
 
             return response.json(stockData);
         } catch (error) {
