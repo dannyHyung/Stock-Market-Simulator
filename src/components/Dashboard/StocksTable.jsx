@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useStockData } from '../../contexts/StockDataContext';
 import { buyStock, sellStock } from '../../services/firestore';
 import { getStockPrice } from '../../services/stocksApi';
 import ExtendedHoursPrice from '../StockMarket/ExtendedHoursPrice';
@@ -37,6 +38,7 @@ import { green, red } from '@mui/material/colors';
 
 export default function StocksTable({ portfolio, onPortfolioUpdate }) {
     const { currentUser } = useAuth();
+    const { getStock } = useStockData();
     const [selectedStock, setSelectedStock] = useState(null);
     const [stockDetails, setStockDetails] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,11 +52,18 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
         setSelectedStock(stock);
         setDialogOpen(true);
         setDialogLoading(true);
-        setTradeType('sell'); // Default to sell since they already own it
+        setTradeType('sell');
         setQuantity(1);
 
         try {
-            const details = await getStockPrice(stock.symbol);
+            // First try to get stock data from local cache only
+            let details = await getStock(stock.symbol, { localOnly: true });
+
+            if (!details) {
+                // If not in local cache, get it with skipUpdate to avoid refreshing entire dashboard
+                details = await getStock(stock.symbol, { skipUpdate: true });
+            }
+
             setStockDetails(details);
         } catch (error) {
             console.error('Error fetching stock details:', error);
@@ -239,6 +248,14 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                                         <TableCell align="right">{stock.quantity}</TableCell>
                                         <TableCell align="right">${(stock.averagePrice || 0).toFixed(2)}</TableCell>
                                         <TableCell align="right">${(currentPrice || 0).toFixed(2)}</TableCell>
+                                        {/* <TableCell align="right"> // to display pre or after hours price
+                                            ${(currentPrice || 0).toFixed(2)}
+                                            {stock.extendedHoursInfo?.hasExtendedHours && (
+                                                <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                                    {stock.extendedHoursInfo.isAfterHours ? 'After Hours' : 'Pre-Market'}
+                                                </Typography>
+                                            )}
+                                        </TableCell> */}
                                         <TableCell align="right">${(totalValue || 0).toFixed(2)}</TableCell>
                                         <TableCell
                                             align="right"
@@ -321,7 +338,7 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                                                 <Typography variant="body1" component="span">
                                                     {stockDetails.regularMarketChange >= 0 ? '+' : ''}
                                                     {stockDetails.regularMarketChange.toFixed(2)}
-                                                    ({(stockDetails.regularMarketChangePercent * 100).toFixed(2)}%)
+                                                    ({stockDetails.regularMarketChangePercent.toFixed(2)}%)
                                                 </Typography>
                                             </Box>
                                             <ExtendedHoursPrice stockDetails={stockDetails} />

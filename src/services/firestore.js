@@ -1,4 +1,6 @@
 import { db } from '../firebase/firebase';
+import { getMultipleStockPrices, getStockPrice } from './stocksApi';
+import { isMarketHours, getCacheDuration } from '../utils/marketUtils';
 import {
     doc,
     getDoc,
@@ -6,8 +8,25 @@ import {
     collection,
     getDocs,
     arrayUnion,
-    setDoc
+    setDoc,
+    serverTimestamp
 } from 'firebase/firestore';
+
+// Helper to determine market hours
+function isWithinMarketHours(date) {
+    const day = date.getDay();
+    if (day === 0 || day === 6) return false; // Weekend
+
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+
+    // Simplified US market hours (9:30 AM - 4:00 PM Eastern)
+    // You'll need to adjust for timezone differences
+    if ((hour > 9 || (hour === 9 && minute >= 30)) && hour < 16) {
+        return true;
+    }
+    return false;
+}
 
 // Get user portfolio
 export async function getUserPortfolio(userId) {
@@ -208,9 +227,36 @@ export async function updateStockPrices(userId, stockPrices) {
     const portfolio = portfolioSnap.data();
     const updatedStocks = portfolio.stocks.map(stock => {
         if (stockPrices[stock.symbol]) {
+            const priceData = stockPrices[stock.symbol];
+
+            // Determine the current most relevant price
+            const regularMarketPrice = priceData.regularMarketPrice || 0;
+            let currentPrice = regularMarketPrice;
+
+            // Store information about extended hours with null checks
+            const extendedHoursInfo = {
+                hasExtendedHours: false,
+                isAfterHours: Boolean(priceData.isAfterHours),
+                isPreMarket: Boolean(priceData.isPreMarket),
+                regularMarketPrice: regularMarketPrice,
+                postMarketPrice: priceData.postMarketPrice || null,
+                preMarketPrice: priceData.preMarketPrice || null
+            };
+
+            // Set the current price based on extended hours if available
+            if (priceData.isAfterHours && priceData.postMarketPrice) {
+                currentPrice = priceData.postMarketPrice;
+                extendedHoursInfo.hasExtendedHours = true;
+            } else if (priceData.isPreMarket && priceData.preMarketPrice) {
+                currentPrice = priceData.preMarketPrice;
+                extendedHoursInfo.hasExtendedHours = true;
+            }
+
             return {
                 ...stock,
-                currentPrice: stockPrices[stock.symbol].regularMarketPrice,
+                currentPrice: currentPrice || stock.averagePrice || 0,
+                regularMarketPrice: regularMarketPrice,
+                extendedHoursInfo: extendedHoursInfo,
                 lastUpdated: new Date()
             };
         }
@@ -357,4 +403,108 @@ export async function removeFromWatchlist(userId, symbol) {
 export async function isInWatchlist(userId, symbol) {
     const watchlist = await getUserWatchlist(userId);
     return watchlist.some(stock => stock.symbol === symbol);
+}
+
+// Use cache to prevent unnecessary api calls
+export async function getStockFromCache(symbol, maxAgeMinutes = 5) {
+    const cacheRef = doc(db, "stockCache", symbol);
+    const cacheSnap = await getDoc(cacheRef);
+
+    if (cacheSnap.exists()) {
+        const cachedData = cacheSnap.data();
+        const timestamp = cachedData.timestamp.toDate();
+        const ageInMinutes = (Date.now() - timestamp) / (1000 * 60);
+
+        // Adjust max age based on market hours
+        const now = new Date();
+        const isMarketHours = isWithinMarketHours(now);
+        const effectiveMaxAge = isMarketHours ? maxAgeMinutes : 60; // 1 hour cache when market closed
+
+        if (ageInMinutes < effectiveMaxAge) {
+            return cachedData.stockData;
+        }
+    }
+
+    return null;
+}
+
+export async function updateStockCache(symbol, stockData) {
+    const cacheRef = doc(db, "stockCache", symbol);
+    await setDoc(cacheRef, {
+        stockData,
+        timestamp: serverTimestamp()
+    });
+}
+
+// Modified getStockPrice function
+export async function getEnhancedStockPrice(symbol, useCache = true) {
+    try {
+        // Use the utility function
+        const cacheDuration = getCacheDuration();
+
+        // Check cache first if useCache is true
+        if (useCache) {
+            const cachedData = await getStockFromCache(symbol, cacheDuration);
+            if (cachedData) return cachedData;
+        }
+
+        // If market is closed and we didn't find it in cache, try not to fetch new data
+        if (!isMarketHours() && !forceRefresh) {
+            // Try harder to avoid API calls when market is closed
+            const cachedData = await getStockFromCache(symbol, 1440); // Accept up to 24-hour old cache
+            if (cachedData) return cachedData;
+        }
+
+        // Fetch fresh data if needed
+        const stockData = await getStockPrice(symbol);
+
+        // Update cache
+        if (stockData) {
+            await updateStockCache(symbol, stockData);
+        }
+
+        return stockData;
+    } catch (error) {
+        console.error("Error fetching stock data:", error);
+        throw error;
+    }
+}
+
+// Enhanced batch function for multiple stocks
+export async function getEnhancedMultipleStockPrices(symbols, useCache = true) {
+    try {
+        const result = {};
+        const symbolsToFetch = [];
+
+        // Check cache first if useCache is true
+        if (useCache) {
+            for (const symbol of symbols) {
+                const cachedData = await getStockFromCache(symbol);
+                if (cachedData) {
+                    result[symbol] = cachedData;
+                } else {
+                    symbolsToFetch.push(symbol);
+                }
+            }
+        } else {
+            symbolsToFetch.push(...symbols);
+        }
+
+        // Only fetch what's not in cache
+        if (symbolsToFetch.length > 0) {
+            const freshData = await getMultipleStockPrices(symbolsToFetch);
+
+            // Update cache and results
+            for (const symbol in freshData) {
+                const stockData = freshData[symbol];
+                await updateStockCache(symbol, stockData);
+                result[symbol] = stockData;
+            }
+        }
+
+        return result;
+    } catch (error) {
+        console.error("Error fetching multiple stock data:", error);
+        throw error;
+    }
 }

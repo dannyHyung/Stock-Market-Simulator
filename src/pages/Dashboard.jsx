@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useStockData } from '../contexts/StockDataContext';
 import { getUserPortfolio, updateStockPrices, getPortfolioHistory, updatePortfolioHistory } from '../services/firestore';
 import { getMultipleStockPrices } from '../services/stocksApi';
 import PortfolioChart from '../components/Dashboard/PortfolioChart';
@@ -12,6 +13,7 @@ import { green, red } from '@mui/material/colors';
 
 export default function Dashboard() {
     const { currentUser } = useAuth();
+    const { getMultipleStocks } = useStockData();
     const [portfolio, setPortfolio] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -32,7 +34,8 @@ export default function Dashboard() {
                     const symbols = portfolioData.stocks.map(stock => stock.symbol);
 
                     if (symbols.length > 0) {
-                        const stockPrices = await getMultipleStockPrices(symbols);
+                        // Use context to get stock data
+                        const stockPrices = await getMultipleStocks(symbols);
 
                         // Update portfolio with current prices
                         await updateStockPrices(currentUser.uid, stockPrices);
@@ -43,7 +46,7 @@ export default function Dashboard() {
 
                         // Calculate total value and daily change
                         let totalStocksValue = 0;
-                        let totalDailyChange = 0;
+                        let yesterdayPortfolioValue = updatedPortfolio.cash; // Start with current cash value
 
                         updatedPortfolio.stocks.forEach(stock => {
                             // Get the most current price available (after-hours, pre-market, or regular)
@@ -62,24 +65,30 @@ export default function Dashboard() {
                                 currentPrice = stock.averagePrice;
                             }
 
+                            // Get yesterday's closing price
                             const previousClose = stockData?.regularMarketPreviousClose || currentPrice;
-                            const stockValue = stock.quantity * currentPrice;
-                            const dailyChangeValue = stock.quantity * (currentPrice - previousClose);
 
+                            // Calculate current value of this stock
+                            const stockValue = stock.quantity * currentPrice;
                             totalStocksValue += stockValue;
-                            totalDailyChange += dailyChangeValue;
+
+                            // Calculate yesterday's value of this SAME stock position
+                            const yesterdayStockValue = stock.quantity * previousClose;
+                            yesterdayPortfolioValue += yesterdayStockValue;
                         });
 
+                        // Current total portfolio value
                         const portfolioTotalValue = updatedPortfolio.cash + totalStocksValue;
                         setTotalValue(portfolioTotalValue);
 
-                        // Calculate daily change percentage
-                        const dailyChangePercentage = (totalDailyChange / portfolioTotalValue) * 100;
-                        setDailyChange({
-                            value: totalDailyChange,
-                            percentage: dailyChangePercentage
-                        });
+                        // Calculate true daily portfolio change
+                        const portfolioDailyChange = portfolioTotalValue - yesterdayPortfolioValue;
+                        const portfolioDailyChangePercentage = (portfolioDailyChange / yesterdayPortfolioValue) * 100;
 
+                        setDailyChange({
+                            value: portfolioDailyChange,
+                            percentage: portfolioDailyChangePercentage
+                        });
                         // Update portfolio history
                         await updatePortfolioHistory(currentUser.uid, portfolioTotalValue);
 
@@ -108,25 +117,25 @@ export default function Dashboard() {
 
         fetchPortfolio();
 
-        // Set up interval to refresh data (during market hours)
-        const intervalId = setInterval(() => {
-            const now = new Date();
-            const day = now.getDay();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            
-            // Extended hours: 4:00 AM - 8:00 PM EST, Mon-Fri
-            const isMarketDay = day >= 1 && day <= 5;
-            const isExtendedHours = isMarketDay && hours >= 4 && hours < 20;
-            
-            // Only update when the market is open (including extended hours)
-            if (isExtendedHours) {
-              fetchPortfolio();
-            }
-          }, 60000); // Update every minute
+        // // Set up interval to refresh data (during market hours)
+        // const intervalId = setInterval(() => {
+        //     const now = new Date();
+        //     const day = now.getDay();
+        //     const hours = now.getHours();
+        //     const minutes = now.getMinutes();
 
-        return () => clearInterval(intervalId);
-    }, [currentUser]);
+        //     // Extended hours: 4:00 AM - 8:00 PM EST, Mon-Fri
+        //     const isMarketDay = day >= 1 && day <= 5;
+        //     const isExtendedHours = isMarketDay && hours >= 4 && hours < 20;
+
+        //     // Only update when the market is open (including extended hours)
+        //     if (isExtendedHours) {
+        //         fetchPortfolio();
+        //     }
+        // }, 60000); // Update every minute
+
+        // return () => clearInterval(intervalId);
+    }, [currentUser, getMultipleStocks]);
 
     const refreshPortfolio = async () => {
         try {

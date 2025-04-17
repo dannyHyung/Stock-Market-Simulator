@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { StockDataProvider } from './contexts/StockDataContext';
 import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
 import Leaderboard from './pages/Leaderboard';
@@ -10,14 +11,16 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Auth />} />
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="leaderboard" element={<Leaderboard />} />
-            <Route path="market" element={<Market />} />
-          </Route>
-        </Routes>
+        <StockDataProvider>
+          <Routes>
+            <Route path="/login" element={<Auth />} />
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="leaderboard" element={<Leaderboard />} />
+              <Route path="market" element={<Market />} />
+            </Route>
+          </Routes>
+        </StockDataProvider>
       </AuthProvider>
     </BrowserRouter>
   );

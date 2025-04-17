@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useStockData } from '../contexts/StockDataContext';
 import { searchStocks, getStockPrice } from '../services/stocksApi';
 import { buyStock, sellStock, getUserPortfolio } from '../services/firestore';
 import ExtendedHoursPrice from '../components/StockMarket/ExtendedHoursPrice';
@@ -38,6 +39,7 @@ import { green, red } from '@mui/material/colors';
 
 export default function Market() {
   const { currentUser } = useAuth();
+  const { getStock, getMultipleStocks } = useStockData();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedStock, setSelectedStock] = useState(null);
@@ -77,7 +79,7 @@ export default function Market() {
     setQuantity(1);
 
     try {
-      const details = await getStockPrice(stock.symbol);
+      const details = await getStock(stock.symbol);
       setStockDetails(details);
 
       // Get user's portfolio to check if they own this stock
@@ -328,7 +330,7 @@ export default function Market() {
                     <Typography variant="body1" component="span">
                       {stockDetails.regularMarketChange >= 0 ? '+' : ''}
                       {stockDetails.regularMarketChange.toFixed(2)}
-                      ({(stockDetails.regularMarketChangePercent * 100).toFixed(2)}%)
+                      ({stockDetails.regularMarketChangePercent.toFixed(2)}%)
                     </Typography>
                   </Box>
                   <ExtendedHoursPrice stockDetails={stockDetails} />
