@@ -146,7 +146,18 @@ export default function Layout() {
               aria-controls="user-menu"
               aria-haspopup="true"
             >
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+              <Avatar sx={{
+                width: 32,
+                height: 32,
+                background: theme => theme.palette.mode === 'dark'
+                  ? 'linear-gradient(135deg, #424242 0%, #616161 100%)' // Subtle gray in dark mode
+                  : 'linear-gradient(135deg, #263238 0%, #37474F 100%)', // Dark slate in light mode
+                color: 'white',
+                fontWeight: 'bold',
+                boxShadow: theme => theme.palette.mode === 'dark'
+                  ? '0 2px 4px rgba(0,0,0,0.2)'
+                  : 'none',
+              }}>
                 {userName.charAt(0).toUpperCase()}
               </Avatar>
             </IconButton>
