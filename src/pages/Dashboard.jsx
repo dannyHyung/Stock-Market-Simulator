@@ -10,6 +10,7 @@ import { Box, Grid, Card, CardContent, Typography, CircularProgress, Alert } fro
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { green, red } from '@mui/material/colors';
+import { getYesterdayValue } from '../utils/portfolioUtils'
 
 export default function Dashboard() {
     const { currentUser } = useAuth();
@@ -81,20 +82,32 @@ export default function Dashboard() {
                         const portfolioTotalValue = updatedPortfolio.cash + totalStocksValue;
                         setTotalValue(portfolioTotalValue);
 
-                        // Calculate true daily portfolio change
-                        const portfolioDailyChange = portfolioTotalValue - yesterdayPortfolioValue;
-                        const portfolioDailyChangePercentage = (portfolioDailyChange / yesterdayPortfolioValue) * 100;
-
-                        setDailyChange({
-                            value: portfolioDailyChange,
-                            percentage: portfolioDailyChangePercentage
-                        });
-                        // Update portfolio history
-                        await updatePortfolioHistory(currentUser.uid, portfolioTotalValue);
-
                         // Get portfolio history
                         const history = await getPortfolioHistory(currentUser.uid);
                         setPortfolioHistory(history);
+
+                        // Get yesterday's portfolio value using the utility function
+                        const yesterdayValue = getYesterdayValue(history);
+
+                        if (yesterdayValue !== null) {
+                            // Calculate TODAY'S CHANGE using historical data
+                            const portfolioDailyChange = portfolioTotalValue - yesterdayValue;
+                            const portfolioDailyChangePercentage = (portfolioDailyChange / yesterdayValue) * 100;
+
+                            setDailyChange({
+                                value: portfolioDailyChange,
+                                percentage: portfolioDailyChangePercentage
+                            });
+                        } else {
+                            // No historical data = no change to report
+                            setDailyChange({
+                                value: 0,
+                                percentage: 0
+                            });
+                        }
+
+                        // Update portfolio history with current value (for tomorrow's comparison)
+                        await updatePortfolioHistory(currentUser.uid, portfolioTotalValue);
                     } else {
                         setPortfolio(portfolioData);
                         setTotalValue(portfolioData.cash);
