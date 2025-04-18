@@ -3,9 +3,18 @@ import { Box, Typography } from '@mui/material';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { green, red } from '@mui/material/colors';
+import { getMarketStatus } from '../../utils/marketUtils';
 
 export default function ExtendedHoursPrice({ stockDetails }) {
   if (!stockDetails) return null;
+
+  // Check if we're currently in regular market hours
+  const marketStatus = getMarketStatus();
+
+  // If we're in regular market hours, don't show extended hours pricing
+  if (marketStatus.isRegularHours) {
+    return null;
+  }
 
   // Check for after-hours data
   if (stockDetails.isAfterHours && stockDetails.postMarketPrice) {

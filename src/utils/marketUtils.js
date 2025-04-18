@@ -1,15 +1,25 @@
 /**
- * Checks if current time falls within stock market trading hours (including extended hours)
- * @param {Date} [date=new Date()] - Date to check (defaults to current time)
- * @returns {Object} Object containing market status details
+ * Gets current market status information, always using Eastern Time
+ * @returns {Object} Object with market status flags
  */
-export function getMarketStatus(date = new Date()) {
-  const day = date.getDay();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
+export function getMarketStatus() {
+  // Get current time in user's timezone
+  const now = new Date();
+  
+  // Convert to ET (Eastern Time)
+  const etOptions = { timeZone: 'America/New_York' };
+  
+  // Get date parts in ET
+  const etDateString = now.toLocaleString('en-US', etOptions);
+  const etDate = new Date(etDateString);
+  
+  // Get ET day (0-6), hours (0-23), and minutes (0-59)
+  const etDay = etDate.getDay();
+  const etHours = etDate.getHours();
+  const etMinutes = etDate.getMinutes();
   
   // Weekend check (0 = Sunday, 6 = Saturday)
-  if (day === 0 || day === 6) {
+  if (etDay === 0 || etDay === 6) {
     return {
       isMarketDay: false,
       isRegularHours: false,
@@ -22,23 +32,19 @@ export function getMarketStatus(date = new Date()) {
   // Market day (Monday-Friday)
   const isMarketDay = true;
   
-  // Convert time to Eastern Time (ET) - this is simplified
-  // For production, use a proper timezone library
-  const estHour = hours; // Adjust this based on your server's timezone
-  
   // Regular market hours: 9:30 AM - 4:00 PM ET
   const isRegularHours = 
-    (estHour > 9 || (estHour === 9 && minutes >= 30)) && 
-    estHour < 16;
+    (etHours > 9 || (etHours === 9 && etMinutes >= 30)) && 
+    etHours < 16;
   
   // Pre-market hours: 4:00 AM - 9:30 AM ET
   const isPreMarket = 
-    estHour >= 4 && 
-    (estHour < 9 || (estHour === 9 && minutes < 30));
+    etHours >= 4 && 
+    (etHours < 9 || (etHours === 9 && etMinutes < 30));
   
   // After-hours: 4:00 PM - 8:00 PM ET
   const isAfterHours = 
-    estHour >= 16 && estHour < 20;
+    etHours >= 16 && etHours < 20;
   
   // Extended hours include both pre-market and after-hours
   const isExtendedHours = isPreMarket || isAfterHours;
@@ -48,7 +54,10 @@ export function getMarketStatus(date = new Date()) {
     isRegularHours,
     isExtendedHours,
     isPreMarket,
-    isAfterHours
+    isAfterHours,
+    // For debugging
+    etHours, 
+    etMinutes
   };
 }
 
