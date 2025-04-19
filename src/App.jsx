@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
 import Leaderboard from './pages/Leaderboard';
 import Market from './pages/Market';
+import TransactionHistory from './pages/TransactionHistory';
 import Layout from './components/Layout/Layout';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="market" element={<Market />} />
+              <Route path="/history" element={<TransactionHistory />} /> 
             </Route>
           </Routes>
         </StockDataProvider>

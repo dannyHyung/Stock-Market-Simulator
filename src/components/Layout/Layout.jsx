@@ -21,6 +21,7 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import HistoryIcon from '@mui/icons-material/History';
 import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -95,6 +96,7 @@ export default function Layout() {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Market', icon: <ShowChartIcon />, path: '/market' },
     { text: 'Leaderboard', icon: <LeaderboardIcon />, path: '/leaderboard' },
+    { text: 'History', icon: <HistoryIcon />, path: '/history' }, 
   ];
 
   return (
