@@ -6,6 +6,8 @@ import { getMultipleStockPrices } from '../services/stocksApi';
 import PortfolioChart from '../components/Dashboard/PortfolioChart';
 import StocksTable from '../components/Dashboard/StocksTable';
 import MarketStatusIndicator from '../components/Dashboard/MarketStatusIndicator';
+import CustomCard from '../components/UI/CustomCard';
+import ResponsiveChartContainer from '../components/UI/ResponsiveChartContainer';
 import { Box, Grid, Card, CardContent, Typography, CircularProgress, Alert } from '@mui/material';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -184,7 +186,7 @@ export default function Dashboard() {
 
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12} md={4}>
-                    <Card sx={{ height: '100%' }}>
+                    <CustomCard>
                         <CardContent>
                             <Typography variant="subtitle2" color="text.secondary">
                                 Total Value
@@ -193,11 +195,11 @@ export default function Dashboard() {
                                 ${(totalValue || 0).toFixed(2)}
                             </Typography>
                         </CardContent>
-                    </Card>
+                    </CustomCard>
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                    <Card sx={{ height: '100%' }}>
+                    <CustomCard>
                         <CardContent>
                             <Typography variant="subtitle2" color="text.secondary">
                                 Available Cash
@@ -206,13 +208,12 @@ export default function Dashboard() {
                                 ${(portfolio?.cash || 0).toFixed(2)}
                             </Typography>
                         </CardContent>
-                    </Card>
+                    </CustomCard>
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                    <Card
+                    <CustomCard
                         sx={{
-                            height: '100%',
                             borderLeft: dailyChange.value >= 0 ? `4px solid ${green[500]}` : `4px solid ${red[500]}`
                         }}
                     >
@@ -243,7 +244,7 @@ export default function Dashboard() {
                                 </Typography>
                             </Box>
                         </CardContent>
-                    </Card>
+                    </CustomCard>
                 </Grid>
             </Grid>
 

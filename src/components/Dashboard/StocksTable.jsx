@@ -7,6 +7,7 @@ import { getStockPrice } from '../../services/stocksApi';
 import ExtendedHoursPrice from '../StockMarket/ExtendedHoursPrice';
 import { getCurrentPrice, calculateMaxBuyQuantity, calculateTransactionAmount } from '../../utils/stockUtils';
 import WatchlistToggle from '../StockMarket/WatchlistToggle';
+import CustomTable from '../UI/CustomTable';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
@@ -214,7 +215,7 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                     </Button>
                 </Paper>
             ) : (
-                <TableContainer component={Paper}>
+                <CustomTable>
                     <Table>
                         <TableHead>
                             <TableRow>
@@ -285,7 +286,7 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                             })}
                         </TableBody>
                     </Table>
-                </TableContainer>
+                </CustomTable>
             )}
 
             {/* Stock Details Dialog */}
