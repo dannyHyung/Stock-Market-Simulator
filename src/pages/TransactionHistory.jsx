@@ -16,6 +16,7 @@ import SellIcon from '@mui/icons-material/Sell';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import ClearIcon from '@mui/icons-material/Clear';
+import CustomTable from '../components/UI/CustomTable';
 
 export default function TransactionHistory() {
   const { currentUser } = useAuth();
@@ -208,7 +209,7 @@ export default function TransactionHistory() {
             </Typography>
           </Box>
         ) : (
-          <Table size={isMobile ? "small" : "medium"} sx={{ minWidth: 650 }}>
+          <CustomTable size={isMobile ? "small" : "medium"} sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Type</TableCell>
@@ -279,7 +280,7 @@ export default function TransactionHistory() {
                 })
               )}
             </TableBody>
-          </Table>
+          </CustomTable>
         )}
       </TableContainer>
     </Box>

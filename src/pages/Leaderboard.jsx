@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getLeaderboard, getUserPortfolio } from '../services/firestore';
 import { getUserDisplayNames } from '../services/users';
 import { useAuth } from '../contexts/AuthContext';
+import CustomTable from '../components/UI/CustomTable';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
@@ -24,6 +25,7 @@ import DialogContent from '@mui/material/DialogContent';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 
 export default function Leaderboard() {
   const { currentUser } = useAuth();
@@ -42,11 +44,11 @@ export default function Leaderboard() {
       setLoading(true);
       setError('');
       const data = await getLeaderboard();
-      
+
       // Get display names for all users
       const userIds = data.map(entry => entry.userId);
       const displayNames = await getUserDisplayNames(userIds);
-      
+
       setLeaderboardData(data);
       setUserDisplayNames(displayNames);
     } catch (err) {
@@ -104,102 +106,165 @@ export default function Leaderboard() {
         <Typography variant="h4" component="h1">
           Leaderboard
         </Typography>
-        <Button 
-          variant="outlined" 
-          startIcon={<RefreshIcon />}
+        <Button
+          variant="contained"
           onClick={fetchLeaderboard}
           disabled={loading}
+          sx={{
+            backgroundColor: theme => theme.palette.mode === 'dark'
+              ? 'rgba(66, 153, 225, 0.15)'
+              : theme.palette.primary.main,
+            color: theme => theme.palette.mode === 'dark'
+              ? '#90caf9'
+              : 'white',
+            boxShadow: '0 3px 6px rgba(0,0,0,0.16)',
+            borderRadius: '8px',
+            px: 2,
+            py: 1,
+            transition: 'all 0.2s',
+            '&:hover': {
+              backgroundColor: theme => theme.palette.mode === 'dark'
+                ? 'rgba(66, 153, 225, 0.25)'
+                : theme.palette.primary.dark,
+              transform: 'translateY(-2px)',
+              boxShadow: '0 5px 10px rgba(0,0,0,0.2)',
+              '& .refresh-icon': {
+                transform: 'rotate(180deg)',
+              }
+            },
+            '&:active': {
+              transform: 'translateY(0)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }
+          }}
         >
-          Refresh
+          {loading ? (
+            <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+          ) : (
+            <RefreshIcon className="refresh-icon" sx={{ mr: 1, transition: 'transform 0.3s' }} />
+          )}
+          <Typography
+            variant="button"
+            sx={{
+              fontWeight: 600,
+              letterSpacing: '0.5px',
+              textTransform: 'none'
+            }}
+          >
+            Refresh
+          </Typography>
         </Button>
       </Box>
-      
+
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-      
+
       <Paper elevation={3}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Rank</TableCell>
-                  <TableCell>User</TableCell>
-                  <TableCell align="right">Portfolio Value</TableCell>
-                  <TableCell align="right">Cash</TableCell>
-                  <TableCell align="right">Stocks Value</TableCell>
-                  <TableCell align="right">Stocks Owned</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {leaderboardData.map((entry, index) => (
-                  <TableRow 
-                    key={entry.userId} 
-                    hover
-                    sx={{ 
-                      bgcolor: entry.userId === currentUser.uid ? 'action.selected' : 'inherit'
-                    }}
-                  >
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {index < 3 ? (
-                          <EmojiEventsIcon sx={{ color: getMedalColor(index), mr: 1 }} />
-                        ) : (
-                          index + 1
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {userDisplayNames[entry.userId] || `User ${index + 1}`}
-                        {entry.userId === currentUser.uid && (
-                          <Chip 
-                            size="small" 
-                            label="You" 
-                            color="primary" 
-                            variant="outlined" 
-                            sx={{ ml: 1 }} 
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                      ${entry.totalValue.toFixed(2)}
-                    </TableCell>
-                    <TableCell align="right">${entry.cash.toFixed(2)}</TableCell>
-                    <TableCell align="right">${entry.stocksValue.toFixed(2)}</TableCell>
-                    <TableCell align="right">{entry.stockCount}</TableCell>
-                    <TableCell align="right">
-                      <Button 
-                        size="small" 
-                        variant="outlined"
+          <CustomTable>
+            <TableHead>
+              <TableRow>
+                <TableCell>Rank</TableCell>
+                <TableCell>User</TableCell>
+                <TableCell align="right">Portfolio Value</TableCell>
+                <TableCell align="right">Cash</TableCell>
+                <TableCell align="right">Stocks Value</TableCell>
+                <TableCell align="right">Stocks Owned</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {leaderboardData.map((entry, index) => (
+                <TableRow
+                  key={entry.userId}
+                  hover
+                  sx={{
+                    bgcolor: entry.userId === currentUser.uid ? 'action.selected' : 'inherit'
+                  }}
+                >
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {index < 3 ? (
+                        <EmojiEventsIcon sx={{ color: getMedalColor(index), mr: 1 }} />
+                      ) : (
+                        index + 1
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {userDisplayNames[entry.userId] || `User ${index + 1}`}
+                      {entry.userId === currentUser.uid && (
+                        <Chip
+                          size="small"
+                          label="You"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ ml: 1 }}
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                    ${entry.totalValue.toFixed(2)}
+                  </TableCell>
+                  <TableCell align="right">${entry.cash.toFixed(2)}</TableCell>
+                  <TableCell align="right">${entry.stocksValue.toFixed(2)}</TableCell>
+                  <TableCell align="right">{entry.stockCount}</TableCell>
+                  <TableCell align="right" sx={{ py: 0.75 }}>
+                    <Tooltip title="View Portfolio" placement="bottom" arrow>
+                      <Button
+                        size="small"
                         onClick={() => handleViewPortfolio(
-                          entry.userId, 
+                          entry.userId,
                           userDisplayNames[entry.userId] || `User ${index + 1}`
                         )}
+                        sx={{
+                          minWidth: 'auto',
+                          px: 2,
+                          borderRadius: '16px',
+                          fontSize: '0.8125rem',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          boxShadow: theme => theme.palette.mode === 'dark'
+                            ? '0 0 10px rgba(66, 153, 225, 0.1), 0 0 4px rgba(66, 153, 225, 0.05)'
+                            : '0 2px 6px rgba(0,0,0,0.06)',
+                          border: theme => theme.palette.mode === 'dark'
+                            ? '1px solid rgba(255, 255, 255, 0.1)'
+                            : '1px solid rgba(0, 0, 0, 0.08)',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            transform: 'translate(2px, -2px)',
+                            boxShadow: theme => theme.palette.mode === 'dark'
+                              ? '0 0 15px rgba(66, 153, 225, 0.2), 0 0 8px rgba(66, 153, 225, 0.1)'
+                              : '0 6px 12px rgba(0,0,0,0.1)',
+                            backgroundColor: theme => theme.palette.mode === 'dark'
+                              ? 'rgba(255, 255, 255, 0.05)'
+                              : 'rgba(0, 0, 0, 0.02)',
+                          },
+                        }}
                       >
-                        View Portfolio
+                        View
                       </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                
-                {leaderboardData.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
-                      <Typography color="text.secondary">
-                        No data available yet
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+
+              {leaderboardData.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                    <Typography color="text.secondary">
+                      No data available yet
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </CustomTable>
         )}
       </Paper>
 
@@ -238,8 +303,8 @@ export default function Leaderboard() {
                             Total Value
                           </Typography>
                           <Typography variant="h5">
-                            ${(selectedUserPortfolio.cash + 
-                              selectedUserPortfolio.stocks.reduce((sum, stock) => 
+                            ${(selectedUserPortfolio.cash +
+                              selectedUserPortfolio.stocks.reduce((sum, stock) =>
                                 sum + (stock.currentPrice || stock.averagePrice) * stock.quantity, 0
                               )).toFixed(2)}
                           </Typography>
@@ -269,7 +334,7 @@ export default function Leaderboard() {
                   </Box>
 
                   <Typography variant="h6" gutterBottom>Stocks</Typography>
-                  
+
                   {selectedUserPortfolio.stocks.length === 0 ? (
                     <Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
                       {selectedUser.name} doesn't own any stocks yet.
@@ -294,7 +359,7 @@ export default function Leaderboard() {
                               (sum, s) => sum + calculateTotalInvestment(s), 0
                             );
                             const percentage = (investment / totalInvestment) * 100;
-                            
+
                             return (
                               <TableRow key={stock.symbol}>
                                 <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>

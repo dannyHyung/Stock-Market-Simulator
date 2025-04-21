@@ -13,6 +13,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import WatchlistToggle from './WatchlistToggle';
+import CustomTable from '../UI/CustomTable';
 import Button from '@mui/material/Button';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -96,67 +97,65 @@ export default function Watchlist({ onSelectStock }) {
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Symbol</TableCell>
-            <TableCell>Company</TableCell>
-            <TableCell align="right">Price</TableCell>
-            <TableCell align="right">Change</TableCell>
-            <TableCell align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {watchlist.map(stock => {
-            const stockData = stockPrices[stock.symbol] || {};
-            const price = stockData.regularMarketPrice || 0;
-            const change = stockData.regularMarketChange || 0;
-            const changePercent = stockData.regularMarketChangePercent || 0;
+    <CustomTable>
+      <TableHead>
+        <TableRow>
+          <TableCell>Symbol</TableCell>
+          <TableCell>Company</TableCell>
+          <TableCell align="right">Price</TableCell>
+          <TableCell align="right">Change</TableCell>
+          <TableCell align="right">Actions</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {watchlist.map(stock => {
+          const stockData = stockPrices[stock.symbol] || {};
+          const price = stockData.regularMarketPrice || 0;
+          const change = stockData.regularMarketChange || 0;
+          const changePercent = stockData.regularMarketChangePercent || 0;
 
-            return (
-              <TableRow
-                key={stock.symbol}
-                hover
-                onClick={() => onSelectStock && onSelectStock({
-                  symbol: stock.symbol,
-                  shortname: stock.companyName
-                })}
-                sx={{ cursor: onSelectStock ? 'pointer' : 'default' }}
-              >
-                <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                  {stock.symbol}
-                </TableCell>
-                <TableCell>{stock.companyName}</TableCell>
-                <TableCell align="right">
-                  {price ? `$${price.toFixed(2)}` : 'N/A'}
-                </TableCell>
-                <TableCell align="right">
-                  {change !== 0 && (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        color: change >= 0 ? green[500] : red[500]
-                      }}
-                    >
-                      {change >= 0 ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                      {change.toFixed(2)} ({changePercent.toFixed(2)}%)
-                    </Box>
-                  )}
-                </TableCell>
-                <TableCell align="right">
-                  <WatchlistToggle
-                    stock={stock}
-                    onToggle={(isAdded) => handleWatchlistToggle(stock.symbol, isAdded)}
-                  />
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          return (
+            <TableRow
+              key={stock.symbol}
+              hover
+              onClick={() => onSelectStock && onSelectStock({
+                symbol: stock.symbol,
+                shortname: stock.companyName
+              })}
+              sx={{ cursor: onSelectStock ? 'pointer' : 'default' }}
+            >
+              <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
+                {stock.symbol}
+              </TableCell>
+              <TableCell>{stock.companyName}</TableCell>
+              <TableCell align="right">
+                {price ? `$${price.toFixed(2)}` : 'N/A'}
+              </TableCell>
+              <TableCell align="right">
+                {change !== 0 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      color: change >= 0 ? green[500] : red[500]
+                    }}
+                  >
+                    {change >= 0 ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                    {change.toFixed(2)} ({changePercent.toFixed(2)}%)
+                  </Box>
+                )}
+              </TableCell>
+              <TableCell align="right">
+                <WatchlistToggle
+                  stock={stock}
+                  onToggle={(isAdded) => handleWatchlistToggle(stock.symbol, isAdded)}
+                />
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </CustomTable>
   );
 }

@@ -449,7 +449,7 @@ export async function getEnhancedStockPrice(symbol, useCache = true) {
         }
 
         // If market is closed and we didn't find it in cache, try not to fetch new data
-        if (!isMarketHours() && !forceRefresh) {
+        if (!isMarketHours() && !useCache) {
             // Try harder to avoid API calls when market is closed
             const cachedData = await getStockFromCache(symbol, 1440); // Accept up to 24-hour old cache
             if (cachedData) return cachedData;

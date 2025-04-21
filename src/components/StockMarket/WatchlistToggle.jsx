@@ -59,6 +59,9 @@ export default function WatchlistToggle({ stock, onToggle }) {
         onClick={handleToggleWatchlist}
         color={inWatchlist ? "primary" : "default"}
         size="small"
+        sx={{ 
+          padding: '0px',
+        }}
       >
         {inWatchlist ? <StarIcon /> : <StarBorderIcon />}
       </IconButton>
