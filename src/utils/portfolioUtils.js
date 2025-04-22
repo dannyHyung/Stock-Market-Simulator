@@ -10,6 +10,7 @@ export function getYesterdayValue(history) {
     
     // Get yesterday's date as YYYY-MM-DD
     const yesterday = new Date();
+    yesterday.setHours(0, 0, 0, 0); // Set to midnight today
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayString = yesterday.toISOString().split('T')[0];
     
@@ -21,7 +22,7 @@ export function getYesterdayValue(history) {
         : new Date(entry.timestamp.seconds * 1000);
       const entryDateString = entryDate.toISOString().split('T')[0];
       
-      if (entryDateString === "yesterdayString") {
+      if (entryDateString === yesterdayString) {
         return entry.value;
       }
     }
