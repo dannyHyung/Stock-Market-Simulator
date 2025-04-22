@@ -8,6 +8,7 @@ import ExtendedHoursPrice from '../StockMarket/ExtendedHoursPrice';
 import { getCurrentPrice, calculateMaxBuyQuantity, calculateTransactionAmount } from '../../utils/stockUtils';
 import WatchlistToggle from '../StockMarket/WatchlistToggle';
 import CustomTable from '../UI/CustomTable';
+import StockDetails from './StocksDetails';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
@@ -289,137 +290,102 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                 </CustomTable>
             )}
 
-            {/* Stock Details Dialog */}
             <Dialog
                 open={dialogOpen}
                 onClose={handleCloseDialog}
                 maxWidth="md"
                 fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '12px',
+                        backgroundImage: theme => theme.palette.mode === 'dark'
+                            ? 'linear-gradient(145deg, #2d2d2d 0%, #1f1f1f 100%)'
+                            : 'linear-gradient(145deg, #ffffff 0%, #f7f9fc 100%)',
+                        boxShadow: theme => theme.palette.mode === 'dark'
+                            ? '0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(66, 153, 225, 0.15)'
+                            : '0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05)',
+                        border: theme => theme.palette.mode === 'dark'
+                            ? '1px solid rgba(255, 255, 255, 0.1)'
+                            : 'none',
+                    }
+                }}
             >
                 {selectedStock && (
                     <>
-                        <DialogTitle>
+                        <DialogTitle sx={{
+                            background: theme => theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.03)'
+                                : 'rgba(0, 0, 0, 0.01)',
+                            borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                            py: 1.5,
+                            px: 2.5
+                        }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <Typography variant="h6">
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Typography
+                                        variant="h6"
+                                        sx={{
+                                            fontWeight: 600,
+                                            fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                        }}
+                                    >
                                         {selectedStock.symbol} - {selectedStock.companyName}
                                     </Typography>
                                     <WatchlistToggle stock={selectedStock} />
                                 </Box>
-                                <IconButton onClick={handleCloseDialog}>
+                                <IconButton
+                                    onClick={handleCloseDialog}
+                                    sx={{
+                                        borderRadius: '8px',
+                                        '&:hover': {
+                                            backgroundColor: theme => theme.palette.mode === 'dark'
+                                                ? 'rgba(255, 255, 255, 0.08)'
+                                                : 'rgba(0, 0, 0, 0.04)',
+                                        }
+                                    }}
+                                >
                                     <CloseIcon />
                                 </IconButton>
                             </Box>
                         </DialogTitle>
-                        <Divider />
-                        <DialogContent>
-                            {dialogLoading ? (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                                    <CircularProgress />
-                                </Box>
-                            ) : stockDetails ? (
-                                <>
-                                    <Grid container spacing={3} sx={{ mb: 4 }}>
-                                        <Grid item xs={12} md={6}>
-                                            <Typography variant="h3" component="div">
-                                                ${stockDetails.regularMarketPrice.toFixed(2)}
-                                            </Typography>
-                                            <Box
-                                                sx={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    color: stockDetails.regularMarketChange >= 0 ? green[500] : red[500]
-                                                }}
-                                            >
-                                                {stockDetails.regularMarketChange >= 0 ? (
-                                                    <ArrowDropUpIcon />
-                                                ) : (
-                                                    <ArrowDropDownIcon />
-                                                )}
-                                                <Typography variant="body1" component="span">
-                                                    {stockDetails.regularMarketChange >= 0 ? '+' : ''}
-                                                    {stockDetails.regularMarketChange.toFixed(2)}
-                                                    ({stockDetails.regularMarketChangePercent.toFixed(2)}%)
-                                                </Typography>
-                                            </Box>
-                                            <ExtendedHoursPrice stockDetails={stockDetails} />
-                                        </Grid>
 
-                                        <Grid item xs={12} md={6}>
-                                            <Grid container spacing={2}>
-                                                <Grid item xs={6}>
-                                                    <Typography variant="caption" color="text.secondary">Your Position</Typography>
-                                                    <Typography variant="body1">{selectedStock.quantity} shares</Typography>
-                                                </Grid>
-                                                <Grid item xs={6}>
-                                                    <Typography variant="caption" color="text.secondary">Avg. Cost</Typography>
-                                                    <Typography variant="body1">${selectedStock.averagePrice.toFixed(2)}</Typography>
-                                                </Grid>
-                                                <Grid item xs={6}>
-                                                    <Typography variant="caption" color="text.secondary">Total Value</Typography>
-                                                    <Typography variant="body1">${(selectedStock.quantity * stockDetails.regularMarketPrice).toFixed(2)}</Typography>
-                                                </Grid>
-                                                <Grid item xs={6}>
-                                                    <Typography variant="caption" color="text.secondary">Today's Open</Typography>
-                                                    <Typography variant="body1">${stockDetails.regularMarketOpen.toFixed(2)}</Typography>
-                                                </Grid>
-                                            </Grid>
-                                        </Grid>
-                                    </Grid>
-
-                                    <Typography variant="h6" gutterBottom>Trade {selectedStock.symbol}</Typography>
-
-                                    <Tabs
-                                        value={tradeType}
-                                        onChange={(e, newValue) => setTradeType(newValue)}
-                                        sx={{ mb: 2 }}
-                                    >
-                                        <Tab label="Buy" value="buy" />
-                                        <Tab label="Sell" value="sell" />
-                                    </Tabs>
-
-                                    <Grid container spacing={3}>
-                                        <Grid item xs={12} md={6}>
-                                            <TextField
-                                                label="Quantity"
-                                                type="number"
-                                                fullWidth
-                                                value={quantity}
-                                                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 0))}
-                                                InputProps={{
-                                                    inputProps: { min: 1 }
-                                                }}
-                                                helperText={
-                                                    tradeType === 'buy'
-                                                        ? `Max: ${calculateMaxBuyQuantity(stockDetails, portfolio)} shares`
-                                                        : `Max: ${selectedStock.quantity} shares`
-                                                }
-                                            />
-                                        </Grid>
-
-                                        <Grid item xs={12} md={6}>
-                                            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                                <Typography variant="subtitle2" color="text.secondary">
-                                                    Estimated {tradeType === 'buy' ? 'Cost' : 'Proceeds'}
-                                                </Typography>
-                                                <Typography variant="h6" sx={{ mb: 1 }}>
-                                                    ${calculateTransactionAmount(stockDetails, quantity)}
-                                                </Typography>
-                                                {tradeType === 'buy' && (
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Available Cash: ${portfolio.cash.toFixed(2)}
-                                                    </Typography>
-                                                )}
-                                            </Box>
-                                        </Grid>
-                                    </Grid>
-                                </>
-                            ) : (
-                                <Typography>Could not load stock details</Typography>
-                            )}
+                        <DialogContent sx={{ p: { xs: 2, sm: 3 }, mt: 1 }}>
+                            <StockDetails
+                                stock={selectedStock}
+                                stockDetails={stockDetails}
+                                loading={dialogLoading}
+                                tradeType={tradeType}
+                                setTradeType={setTradeType}
+                                quantity={quantity}
+                                setQuantity={setQuantity}
+                                portfolio={portfolio}
+                                onBuy={handleBuyStock}
+                                onSell={handleSellStock}
+                                calculateMaxBuyQuantity={calculateMaxBuyQuantity}
+                                calculateTransactionAmount={calculateTransactionAmount}
+                                showPortfolioInfo={true}
+                            />
                         </DialogContent>
-                        <DialogActions>
-                            <Button onClick={handleCloseDialog}>Cancel</Button>
+
+                        <DialogActions sx={{
+                            p: 2.5,
+                            backgroundColor: theme => theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.02)'
+                                : 'rgba(0, 0, 0, 0.01)',
+                            borderTop: theme => `1px solid ${theme.palette.divider}`,
+                        }}>
+                            <Button
+                                onClick={handleCloseDialog}
+                                sx={{
+                                    borderRadius: '8px',
+                                    px: 3,
+                                    py: 1,
+                                    fontWeight: 500,
+                                    textTransform: 'none'
+                                }}
+                            >
+                                Cancel
+                            </Button>
                             <Button
                                 variant="contained"
                                 color={tradeType === 'buy' ? 'primary' : 'secondary'}
@@ -433,6 +399,20 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                                     ))
                                 }
                                 onClick={tradeType === 'buy' ? handleBuyStock : handleSellStock}
+                                sx={{
+                                    borderRadius: '8px',
+                                    px: 3,
+                                    py: 1,
+                                    fontWeight: 600,
+                                    fontSize: '0.95rem',
+                                    textTransform: 'none',
+                                    boxShadow: '0 3px 6px rgba(0,0,0,0.16)',
+                                    '&:hover': {
+                                        transform: 'translateY(-1px)',
+                                        boxShadow: '0 5px 10px rgba(0,0,0,0.2)',
+                                    },
+                                    transition: 'all 0.2s',
+                                }}
                             >
                                 {dialogLoading
                                     ? 'Processing...'
