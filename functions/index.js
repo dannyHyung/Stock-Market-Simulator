@@ -78,6 +78,7 @@ exports.searchStocks = functions.https.onRequest((request, response) => {
             }
 
             const results = await yahooFinance.search(query);
+            console.log(`yahoofinance search query results: ${results}`)
             const filteredResults = results.quotes.filter(quote =>
                 (quote.quoteType === 'EQUITY' || quote.quoteType === 'ETF') &&
                 ['NMS', 'NYQ', 'PCX', 'BTS', 'NCM', 'NGM', 'NSC', 'ARCX'].includes(quote.exchange)
