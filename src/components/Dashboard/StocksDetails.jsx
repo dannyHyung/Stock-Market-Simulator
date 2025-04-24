@@ -261,7 +261,7 @@ export default function StockDetails({
                                     // Remove the spinner arrows with a global style
                                     sx: {
                                         '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
-                                            '-webkit-appearance': 'none',
+                                            WebkitAppearance: 'none',
                                             margin: 0,
                                         },
                                     }

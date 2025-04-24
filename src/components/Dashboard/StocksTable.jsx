@@ -217,40 +217,39 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                 </Paper>
             ) : (
                 <CustomTable>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Symbol</TableCell>
-                                <TableCell>Company</TableCell>
-                                <TableCell align="right">Shares</TableCell>
-                                <TableCell align="right">Avg. Price</TableCell>
-                                <TableCell align="right">Current Price</TableCell>
-                                <TableCell align="right">Value</TableCell>
-                                <TableCell align="right">Total Gain/Loss</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {portfolio.stocks.map(stock => {
-                                const currentPrice = stock.currentPrice || stock.averagePrice;
-                                const totalValue = stock.quantity * currentPrice;
-                                const gainLoss = totalValue - (stock.quantity * stock.averagePrice);
-                                const gainLossPercentage = (gainLoss / (stock.quantity * stock.averagePrice)) * 100;
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Symbol</TableCell>
+                            <TableCell>Company</TableCell>
+                            <TableCell align="right">Shares</TableCell>
+                            <TableCell align="right">Avg. Price</TableCell>
+                            <TableCell align="right">Current Price</TableCell>
+                            <TableCell align="right">Value</TableCell>
+                            <TableCell align="right">Total Gain/Loss</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {portfolio.stocks.map(stock => {
+                            const currentPrice = stock.currentPrice || stock.averagePrice;
+                            const totalValue = stock.quantity * currentPrice;
+                            const gainLoss = totalValue - (stock.quantity * stock.averagePrice);
+                            const gainLossPercentage = (gainLoss / (stock.quantity * stock.averagePrice)) * 100;
 
-                                return (
-                                    <TableRow
-                                        key={stock.symbol}
-                                        hover
-                                        onClick={() => handleStockClick(stock)}
-                                        sx={{ cursor: 'pointer' }}
-                                    >
-                                        <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                                            {stock.symbol}
-                                        </TableCell>
-                                        <TableCell>{stock.companyName}</TableCell>
-                                        <TableCell align="right">{stock.quantity}</TableCell>
-                                        <TableCell align="right">${(stock.averagePrice || 0).toFixed(2)}</TableCell>
-                                        <TableCell align="right">${(currentPrice || 0).toFixed(2)}</TableCell>
-                                        {/* <TableCell align="right"> // to display pre or after hours price
+                            return (
+                                <TableRow
+                                    key={stock.symbol}
+                                    hover
+                                    onClick={() => handleStockClick(stock)}
+                                    sx={{ cursor: 'pointer' }}
+                                >
+                                    <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
+                                        {stock.symbol}
+                                    </TableCell>
+                                    <TableCell>{stock.companyName}</TableCell>
+                                    <TableCell align="right">{stock.quantity}</TableCell>
+                                    <TableCell align="right">${(stock.averagePrice || 0).toFixed(2)}</TableCell>
+                                    <TableCell align="right">${(currentPrice || 0).toFixed(2)}</TableCell>
+                                    {/* <TableCell align="right"> // to display pre or after hours price
                                             ${(currentPrice || 0).toFixed(2)}
                                             {stock.extendedHoursInfo?.hasExtendedHours && (
                                                 <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
@@ -258,35 +257,34 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                                                 </Typography>
                                             )}
                                         </TableCell> */}
-                                        <TableCell align="right">${(totalValue || 0).toFixed(2)}</TableCell>
-                                        <TableCell
-                                            align="right"
-                                            sx={{
-                                                color: gainLoss >= 0 ? green[500] : red[500],
-                                                fontWeight: 'medium'
-                                            }}
-                                        >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                {gainLoss >= 0 ? (
-                                                    <ArrowDropUpIcon fontSize="small" />
-                                                ) : (
-                                                    <ArrowDropDownIcon fontSize="small" />
-                                                )}
-                                                ${Math.abs((gainLoss || 0)).toFixed(2)}
-                                                <Typography
-                                                    variant="caption"
-                                                    component="span"
-                                                    sx={{ ml: 0.5 }}
-                                                >
-                                                    ({gainLoss >= 0 ? '+' : ''}{(gainLossPercentage || 0).toFixed(2)}%)
-                                                </Typography>
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
+                                    <TableCell align="right">${(totalValue || 0).toFixed(2)}</TableCell>
+                                    <TableCell
+                                        align="right"
+                                        sx={{
+                                            color: gainLoss >= 0 ? green[500] : red[500],
+                                            fontWeight: 'medium'
+                                        }}
+                                    >
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                            {gainLoss >= 0 ? (
+                                                <ArrowDropUpIcon fontSize="small" />
+                                            ) : (
+                                                <ArrowDropDownIcon fontSize="small" />
+                                            )}
+                                            ${Math.abs((gainLoss || 0)).toFixed(2)}
+                                            <Typography
+                                                variant="caption"
+                                                component="span"
+                                                sx={{ ml: 0.5 }}
+                                            >
+                                                ({gainLoss >= 0 ? '+' : ''}{(gainLossPercentage || 0).toFixed(2)}%)
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
                 </CustomTable>
             )}
 
