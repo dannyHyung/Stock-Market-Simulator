@@ -366,60 +366,6 @@ export default function StocksTable({ portfolio, onPortfolioUpdate }) {
                                 showPortfolioInfo={true}
                             />
                         </DialogContent>
-
-                        <DialogActions sx={{
-                            p: 2.5,
-                            backgroundColor: theme => theme.palette.mode === 'dark'
-                                ? 'rgba(255, 255, 255, 0.02)'
-                                : 'rgba(0, 0, 0, 0.01)',
-                            borderTop: theme => `1px solid ${theme.palette.divider}`,
-                        }}>
-                            <Button
-                                onClick={handleCloseDialog}
-                                sx={{
-                                    borderRadius: '8px',
-                                    px: 3,
-                                    py: 1,
-                                    fontWeight: 500,
-                                    textTransform: 'none'
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="contained"
-                                color={tradeType === 'buy' ? 'primary' : 'secondary'}
-                                disabled={dialogLoading ||
-                                    (tradeType === 'buy' && (
-                                        !portfolio ||
-                                        portfolio.cash < (stockDetails?.regularMarketPrice || 0) * quantity
-                                    )) ||
-                                    (tradeType === 'sell' && (
-                                        !selectedStock || selectedStock.quantity < quantity
-                                    ))
-                                }
-                                onClick={tradeType === 'buy' ? handleBuyStock : handleSellStock}
-                                sx={{
-                                    borderRadius: '8px',
-                                    px: 3,
-                                    py: 1,
-                                    fontWeight: 600,
-                                    fontSize: '0.95rem',
-                                    textTransform: 'none',
-                                    boxShadow: '0 3px 6px rgba(0,0,0,0.16)',
-                                    '&:hover': {
-                                        transform: 'translateY(-1px)',
-                                        boxShadow: '0 5px 10px rgba(0,0,0,0.2)',
-                                    },
-                                    transition: 'all 0.2s',
-                                }}
-                            >
-                                {dialogLoading
-                                    ? 'Processing...'
-                                    : `${tradeType === 'buy' ? 'Buy' : 'Sell'} ${quantity} Share${quantity !== 1 ? 's' : ''}`
-                                }
-                            </Button>
-                        </DialogActions>
                     </>
                 )}
             </Dialog>

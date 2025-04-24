@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box, Typography, Grid, Tabs, Tab, TextField, Button,
-    Skeleton, CircularProgress, Divider
+    Skeleton, CircularProgress, Divider, Paper, Stack, ButtonGroup
 } from '@mui/material';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import ExtendedHoursPrice from '../StockMarket/ExtendedHoursPrice';
 import { green, red } from '@mui/material/colors';
 
@@ -23,6 +25,13 @@ export default function StockDetails({
     calculateTransactionAmount,
     showPortfolioInfo = false
 }) {
+    const [inputValue, setInputValue] = useState(quantity.toString());
+
+    // When the quantity prop changes from outside, update the input value
+    React.useEffect(() => {
+        setInputValue(quantity.toString());
+    }, [quantity]);
+
     if (loading) {
         return (
             <Box sx={{ p: 2 }}>
@@ -37,323 +46,319 @@ export default function StockDetails({
         return <Typography>Could not load stock details</Typography>;
     }
 
+    const isPositive = stockDetails.regularMarketChange >= 0;
+    const positiveColor = green[500];
+    const negativeColor = red[500];
+    const changeColor = isPositive ? positiveColor : negativeColor;
+
     return (
-        <>
-            {/* Price and Info Section */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} md={6}>
-                    <Box sx={{
-                        p: 2.5,
-                        borderRadius: '10px',
-                        background: theme => theme.palette.mode === 'dark'
-                            ? 'rgba(255, 255, 255, 0.03)'
-                            : 'rgba(0, 0, 0, 0.02)',
-                        boxShadow: theme => theme.palette.mode === 'dark'
-                            ? '0 0 10px rgba(66, 153, 225, 0.08)'
-                            : '0 2px 8px rgba(0, 0, 0, 0.05)',
-                        border: theme => theme.palette.mode === 'dark'
-                            ? '1px solid rgba(255, 255, 255, 0.05)'
-                            : '1px solid rgba(0, 0, 0, 0.05)',
-                    }}>
-                        <Typography variant="h3" component="div" sx={{
-                            fontSize: { xs: '2rem', sm: '2.5rem' },
-                            fontWeight: 700,
-                            mb: 1
-                        }}>
-                            ${stockDetails.regularMarketPrice.toFixed(2)}
-                        </Typography>
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                color: stockDetails.regularMarketChange >= 0 ? green[500] : red[500],
-                                mb: 1
-                            }}
-                        >
-                            {stockDetails.regularMarketChange >= 0 ? (
-                                <ArrowDropUpIcon />
-                            ) : (
-                                <ArrowDropDownIcon />
-                            )}
-                            <Typography variant="body1" component="span">
-                                {stockDetails.regularMarketChange >= 0 ? '+' : ''}
-                                {stockDetails.regularMarketChange.toFixed(2)}
-                                ({stockDetails.regularMarketChangePercent.toFixed(2)}%)
-                            </Typography>
-                        </Box>
-                        <ExtendedHoursPrice stockDetails={stockDetails} />
-                    </Box>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                    <Box sx={{
-                        height: '100%',
-                        borderRadius: '10px',
-                        background: theme => theme.palette.mode === 'dark'
-                            ? 'rgba(255, 255, 255, 0.03)'
-                            : 'rgba(0, 0, 0, 0.02)',
-                        border: theme => theme.palette.mode === 'dark'
-                            ? '1px solid rgba(255, 255, 255, 0.05)'
-                            : '1px solid rgba(0, 0, 0, 0.05)',
-                    }}>
-                        {/* If user owns this stock, show position info */}
-                        {showPortfolioInfo && stock.quantity > 0 && (
-                            <>
-                                <Typography
-                                    variant="subtitle2"
-                                    sx={{
-                                        px: 2.5,
-                                        pt: 2.5,
-                                        pb: 1.5,
-                                        fontWeight: 600,
-                                        color: theme => theme.palette.mode === 'dark' ? '#90caf9' : theme.palette.primary.main
-                                    }}
-                                >
-                                    Your Position
-                                </Typography>
-
-                                <Box sx={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    px: 2.5,
-                                    pb: 2
-                                }}>
-                                    <Box>
-                                        <Typography variant="caption" color="text.secondary">Shares</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                            {stock.quantity}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="caption" color="text.secondary">Avg. Cost</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                            ${stock.averagePrice.toFixed(2)}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="caption" color="text.secondary">Total Value</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                            ${(stock.quantity * stockDetails.regularMarketPrice).toFixed(2)}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-
-                                <Divider />
-                            </>
-                        )}
-
-                        {/* Market information section */}
-                        <Typography
-                            variant="subtitle2"
-                            sx={{
-                                px: 2.5,
-                                pt: 2.5,
-                                pb: 1.5,
-                                fontWeight: 600,
-                                color: theme => theme.palette.mode === 'dark' ? '#90caf9' : theme.palette.primary.main
-                            }}
-                        >
-                            Market Data
-                        </Typography>
-
-                        <Box sx={{ px: 2.5, pb: 2.5 }}>
-                            <Grid container spacing={2}>
-                                <Grid item xs={6}>
-                                    <Box sx={{
-                                        p: 2,
-                                        borderRadius: '8px',
-                                        backgroundColor: theme => theme.palette.mode === 'dark'
-                                            ? 'rgba(44, 48, 52, 0.8)'
-                                            : 'rgba(0, 0, 0, 0.05)',
-                                        height: '100%'
-                                    }}>
-                                        <Typography variant="caption" color="text.secondary">Today's Open</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                            ${stockDetails.regularMarketOpen.toFixed(2)}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-
-                                <Grid item xs={6}>
-                                    <Box sx={{
-                                        p: 2,
-                                        borderRadius: '8px',
-                                        backgroundColor: theme => theme.palette.mode === 'dark'
-                                            ? 'rgba(44, 48, 52, 0.8)'
-                                            : 'rgba(0, 0, 0, 0.05)',
-                                        height: '100%'
-                                    }}>
-                                        <Typography variant="caption" color="text.secondary">Previous Close</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                            ${stockDetails.regularMarketPreviousClose.toFixed(2)}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-
-                                <Grid item xs={6}>
-                                    <Box sx={{
-                                        p: 2,
-                                        borderRadius: '8px',
-                                        backgroundColor: theme => theme.palette.mode === 'dark'
-                                            ? 'rgba(44, 48, 52, 0.8)'
-                                            : 'rgba(0, 0, 0, 0.05)',
-                                        height: '100%'
-                                    }}>
-                                        <Typography variant="caption" color="text.secondary">Day High</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                            ${stockDetails.regularMarketDayHigh.toFixed(2)}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-
-                                <Grid item xs={6}>
-                                    <Box sx={{
-                                        p: 2,
-                                        borderRadius: '8px',
-                                        backgroundColor: theme => theme.palette.mode === 'dark'
-                                            ? 'rgba(44, 48, 52, 0.8)'
-                                            : 'rgba(0, 0, 0, 0.05)',
-                                        height: '100%'
-                                    }}>
-                                        <Typography variant="caption" color="text.secondary">Day Low</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                            ${stockDetails.regularMarketDayLow.toFixed(2)}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-                            </Grid>
-                        </Box>
-                    </Box>
-                </Grid>
-            </Grid>
-
-            {/* Trading Section */}
+        <Paper
+            elevation={0}
+            sx={{
+                borderRadius: 3,
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: 'divider',
+            }}
+        >
+            {/* Header with Symbol and Name */}
             <Box sx={{
-                p: 2.5,
-                borderRadius: '10px',
-                background: theme => theme.palette.mode === 'dark'
-                    ? 'rgba(66, 153, 225, 0.05)'
-                    : 'rgba(25, 118, 210, 0.03)',
-                border: theme => theme.palette.mode === 'dark'
-                    ? '1px solid rgba(66, 153, 225, 0.1)'
-                    : '1px solid rgba(25, 118, 210, 0.1)',
+                px: 3,
+                py: 2,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
             }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                    Trade {stock.symbol}
-                </Typography>
+                <Box>
+                    <Typography variant="h5" fontWeight="700">{stock.symbol}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        {stockDetails.shortName || 'Stock'}
+                    </Typography>
+                </Box>
 
-                <Tabs
-                    value={tradeType}
-                    onChange={(e, newValue) => setTradeType(newValue)}
+                {/* Trading Tabs - Moved to header */}
+                <ButtonGroup
+                    variant="outlined"
+                    size="small"
                     sx={{
-                        mb: 3,
-                        '& .MuiTab-root': {
-                            borderRadius: '8px 8px 0 0',
-                            fontWeight: 600,
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                                backgroundColor: theme => theme.palette.mode === 'dark'
-                                    ? 'rgba(255, 255, 255, 0.05)'
-                                    : 'rgba(0, 0, 0, 0.02)',
-                            }
+                        height: 36,
+                        '& .MuiButton-root': {
+                            px: 3,
+                            fontWeight: 600
                         }
                     }}
                 >
-                    <Tab label="Buy" value="buy" />
-                    <Tab label="Sell" value="sell" />
-                </Tabs>
-
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                        <TextField
-                            label="Quantity"
-                            type="number"
-                            fullWidth
-                            value={quantity}
-                            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 0))}
-                            InputProps={{
-                                inputProps: { min: 1 }
-                            }}
-                            helperText={
-                                tradeType === 'buy'
-                                    ? `Max: ${calculateMaxBuyQuantity(stockDetails, portfolio)} shares`
-                                    : `Max: ${stock.quantity || 0} shares`
-                            }
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '8px',
-                                    backgroundColor: theme => theme.palette.mode === 'dark'
-                                        ? 'rgba(255, 255, 255, 0.05)'
-                                        : 'rgba(255, 255, 255, 0.9)',
-                                }
-                            }}
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} md={6}>
-                        <Box
-                            sx={{
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                p: 2,
-                                borderRadius: '8px',
-                                backgroundColor: theme => theme.palette.mode === 'dark'
-                                    ? 'rgba(255, 255, 255, 0.03)'
-                                    : 'rgba(0, 0, 0, 0.02)',
-                                border: theme => `1px solid ${theme.palette.divider}`,
-                            }}
-                        >
-                            <Typography variant="subtitle2" color="text.secondary">
-                                Estimated {tradeType === 'buy' ? 'Cost' : 'Proceeds'}
-                            </Typography>
-                            <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                                ${calculateTransactionAmount(stockDetails, quantity)}
-                            </Typography>
-                            {tradeType === 'buy' && portfolio && (
-                                <Typography variant="caption" color="text.secondary">
-                                    Available Cash: ${portfolio.cash.toFixed(2)}
-                                </Typography>
-                            )}
-                        </Box>
-                    </Grid>
-                </Grid>
-
-                <Button
-                    variant="contained"
-                    color={tradeType === 'buy' ? 'primary' : 'secondary'}
-                    fullWidth
-                    sx={{
-                        mt: 3,
-                        borderRadius: '8px',
-                        px: 3,
-                        py: 1.5,
-                        fontWeight: 600,
-                        fontSize: '0.95rem',
-                        textTransform: 'none',
-                        boxShadow: '0 3px 6px rgba(0,0,0,0.16)',
-                        '&:hover': {
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 5px 10px rgba(0,0,0,0.2)',
-                        },
-                        transition: 'all 0.2s',
-                    }}
-                    onClick={tradeType === 'buy' ? onBuy : onSell}
-                    disabled={
-                        (tradeType === 'buy' && (
-                            !portfolio ||
-                            portfolio.cash < stockDetails.regularMarketPrice * quantity
-                        )) ||
-                        (tradeType === 'sell' && (
-                            !stock || stock.quantity < quantity
-                        ))
-                    }
-                >
-                    {tradeType === 'buy' ? 'Buy' : 'Sell'} {quantity} Share{quantity !== 1 ? 's' : ''}
-                </Button>
+                    <Button
+                        color="primary"
+                        variant={tradeType === 'buy' ? 'contained' : 'outlined'}
+                        onClick={() => setTradeType('buy')}
+                    >
+                        Buy
+                    </Button>
+                    <Button
+                        color="secondary"
+                        variant={tradeType === 'sell' ? 'contained' : 'outlined'}
+                        onClick={() => setTradeType('sell')}
+                    >
+                        Sell
+                    </Button>
+                </ButtonGroup>
             </Box>
-        </>
+
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+                {/* Left Section: Price and Position */}
+                <Box sx={{ flex: 1, p: 3, borderRight: { xs: 'none', md: '1px solid' }, borderColor: 'divider', borderBottom: { xs: '1px solid', md: 'none' }, mb: { xs: 2, md: 0 } }}>
+                    {/* Price Display */}
+                    <Box mb={3}>
+                        <Typography variant="h3" component="div" fontWeight="700" sx={{ fontSize: { xs: '2rem', sm: '2.5rem' } }}>
+                            ${stockDetails.regularMarketPrice.toFixed(2)}
+                        </Typography>
+
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    color: changeColor,
+                                }}
+                            >
+                                {isPositive ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                                <Typography variant="body2" component="span" fontWeight="600">
+                                    {isPositive ? '+' : ''}
+                                    {stockDetails.regularMarketChange.toFixed(2)}
+                                </Typography>
+                            </Box>
+
+                            <Typography variant="body2" component="span" fontWeight="600" color={changeColor}>
+                                ({stockDetails.regularMarketChangePercent.toFixed(2)}%)
+                            </Typography>
+                        </Stack>
+
+                        <ExtendedHoursPrice stockDetails={stockDetails} />
+                    </Box>
+
+                    {/* Position Info */}
+                    {showPortfolioInfo && stock.quantity > 0 && (
+                        <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+                            <Typography variant="subtitle2" fontWeight="600" color="primary" mb={1.5}>
+                                Your Position
+                            </Typography>
+
+                            <Grid container spacing={2}>
+                                <Grid item xs={4}>
+                                    <Typography variant="caption" color="text.secondary">Shares</Typography>
+                                    <Typography variant="body1" fontWeight="700">
+                                        {stock.quantity}
+                                    </Typography>
+                                </Grid>
+
+                                <Grid item xs={4}>
+                                    <Typography variant="caption" color="text.secondary">Avg. Cost</Typography>
+                                    <Typography variant="body1" fontWeight="700">
+                                        ${stock.averagePrice.toFixed(2)}
+                                    </Typography>
+                                </Grid>
+
+                                <Grid item xs={4}>
+                                    <Typography variant="caption" color="text.secondary">Value</Typography>
+                                    <Typography variant="body1" fontWeight="700">
+                                        ${(stock.quantity * stockDetails.regularMarketPrice).toFixed(2)}
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+                        </Paper>
+                    )}
+
+                    {/* Market Data - Redesigned as horizontal stats */}
+                    <Typography variant="subtitle2" fontWeight="600" color="primary" mb={1.5}>
+                        Market Data
+                    </Typography>
+
+                    <Stack spacing={1.5}>
+                        <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary">Open</Typography>
+                            <Typography variant="body2" fontWeight="600">${stockDetails.regularMarketOpen.toFixed(2)}</Typography>
+                        </Stack>
+
+                        <Divider sx={{ opacity: 0.4 }} />
+
+                        <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary">Previous Close</Typography>
+                            <Typography variant="body2" fontWeight="600">${stockDetails.regularMarketPreviousClose.toFixed(2)}</Typography>
+                        </Stack>
+
+                        <Divider sx={{ opacity: 0.4 }} />
+
+                        <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="caption" color="text.secondary">Day Range</Typography>
+                            <Typography variant="body2" fontWeight="600">
+                                ${stockDetails.regularMarketDayLow.toFixed(2)} - ${stockDetails.regularMarketDayHigh.toFixed(2)}
+                            </Typography>
+                        </Stack>
+                    </Stack>
+                </Box>
+
+                {/* Right Section: Trading Panel */}
+                <Box sx={{
+                    flex: 1,
+                    p: 3,
+                    background: theme => theme.palette.mode === 'dark'
+                        ? 'rgba(66, 153, 225, 0.03)'
+                        : 'rgba(25, 118, 210, 0.01)'
+                }}>
+                    <Typography variant="subtitle1" fontWeight="600" mb={2}>
+                        {tradeType === 'buy' ? 'Buy' : 'Sell'} {stock.symbol}
+                    </Typography>
+
+                    {/* Quantity Selector with +/- buttons */}
+                    <Box sx={{ mb: 3 }}>
+                        <Typography variant="caption" color="text.secondary" mb={0.5} display="block">
+                            Quantity
+                        </Typography>
+
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                sx={{ minWidth: '36px', width: '36px', height: '36px', p: 0 }}
+                            >
+                                <RemoveIcon fontSize="small" />
+                            </Button>
+
+                            <TextField
+                                type="number"
+                                value={inputValue}
+                                onChange={(e) => {
+                                    // Allow any value during typing, including empty string
+                                    setInputValue(e.target.value);
+                                }}
+                                onBlur={() => {
+                                    // When focus leaves the field, enforce the minimum value
+                                    const newValue = parseInt(inputValue) || 1;
+                                    setQuantity(newValue);
+                                    setInputValue(newValue.toString());
+                                }}
+                                onKeyDown={(e) => {
+                                    // Also update quantity on Enter key
+                                    if (e.key === 'Enter') {
+                                        const newValue = parseInt(inputValue) || 1;
+                                        setQuantity(newValue);
+                                        setInputValue(newValue.toString());
+                                    }
+                                }}
+                                InputProps={{
+                                    inputProps: {
+                                        style: {
+                                            textAlign: 'center',
+                                            padding: '8px',
+                                            // Remove the spinner arrows
+                                            MozAppearance: 'textfield',
+                                        }
+                                    },
+                                    // Remove the spinner arrows with a global style
+                                    sx: {
+                                        '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+                                            '-webkit-appearance': 'none',
+                                            margin: 0,
+                                        },
+                                    }
+                                }}
+                                sx={{
+                                    width: '80px',
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 1,
+                                    }
+                                }}
+                            />
+
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setQuantity(quantity + 1)}
+                                sx={{ minWidth: '36px', width: '36px', height: '36px', p: 0 }}
+                            >
+                                <AddIcon fontSize="small" />
+                            </Button>
+
+                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                Max: {
+                                    tradeType === 'buy'
+                                        ? calculateMaxBuyQuantity(stockDetails, portfolio)
+                                        : (stock.quantity || 0)
+                                }
+                            </Typography>
+                        </Stack>
+                    </Box>
+
+                    {/* Transaction Summary */}
+                    <Paper
+                        variant="outlined"
+                        sx={{
+                            p: 2,
+                            mb: 3,
+                            borderRadius: 2,
+                            backgroundColor: theme => theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.03)'
+                                : 'rgba(0, 0, 0, 0.02)',
+                        }}
+                    >
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">
+                                    {tradeType === 'buy' ? 'Cost' : 'Proceeds'}
+                                </Typography>
+                                <Typography variant="h6" fontWeight="700">
+                                    ${calculateTransactionAmount(stockDetails, quantity)}
+                                </Typography>
+                            </Box>
+
+                            {tradeType === 'buy' && portfolio && (
+                                <Box sx={{ textAlign: 'right' }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Available Cash
+                                    </Typography>
+                                    <Typography variant="body2" fontWeight="600">
+                                        ${portfolio.cash.toFixed(2)}
+                                    </Typography>
+                                </Box>
+                            )}
+                        </Stack>
+                    </Paper>
+
+                    {/* Action Button - Now aligned to the right */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                            variant="contained"
+                            color={tradeType === 'buy' ? 'primary' : 'secondary'}
+                            sx={{
+                                borderRadius: 2,
+                                py: 1,
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                width: 'auto',
+                                display: 'inline-block',
+                                minWidth: '120px',
+                                boxShadow: 1
+                            }}
+                            onClick={tradeType === 'buy' ? onBuy : onSell}
+                            disabled={
+                                (tradeType === 'buy' && (
+                                    !portfolio ||
+                                    portfolio.cash < stockDetails.regularMarketPrice * quantity
+                                )) ||
+                                (tradeType === 'sell' && (
+                                    !stock || stock.quantity < quantity
+                                ))
+                            }
+                        >
+                            {tradeType === 'buy' ? 'Buy' : 'Sell'} {quantity} share{quantity !== 1 ? 's' : ''}
+                        </Button>
+                    </Box>
+                </Box>
+            </Box>
+        </Paper>
     );
 }
