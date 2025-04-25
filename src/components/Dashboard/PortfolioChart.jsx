@@ -128,14 +128,8 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80%' }}>
           <CircularProgress />
         </Box>
-      ) : portfolioHistory.length > 1 ? (
-        <Line data={prepareChartData()} options={chartOptions} height={250} />
       ) : (
-        <Box sx={{ display: 'flex', height: '80%', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography color="text.secondary">
-            Not enough data to display chart. Check back later as you use the app.
-          </Typography>
-        </Box>
+        <Line data={prepareChartData()} options={chartOptions} height={250} />
       )}
     </Paper>
   );

@@ -74,7 +74,7 @@ export default function StockDetails({
                 <Box>
                     <Typography variant="h5" fontWeight="700">{stock.symbol}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                        {stockDetails.shortName || 'Stock'}
+                        {stockDetails.longName || 'Stock'}
                     </Typography>
                 </Box>
 
@@ -171,7 +171,7 @@ export default function StockDetails({
                         </Paper>
                     )}
 
-                    {/* Market Data - Redesigned as horizontal stats */}
+                    {/* Market Data */}
                     <Typography variant="subtitle2" fontWeight="600" color="primary" mb={1.5}>
                         Market Data
                     </Typography>

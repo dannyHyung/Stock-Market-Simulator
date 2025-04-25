@@ -132,24 +132,6 @@ export default function Dashboard() {
 
         fetchPortfolio();
 
-        // // Set up interval to refresh data (during market hours)
-        // const intervalId = setInterval(() => {
-        //     const now = new Date();
-        //     const day = now.getDay();
-        //     const hours = now.getHours();
-        //     const minutes = now.getMinutes();
-
-        //     // Extended hours: 4:00 AM - 8:00 PM EST, Mon-Fri
-        //     const isMarketDay = day >= 1 && day <= 5;
-        //     const isExtendedHours = isMarketDay && hours >= 4 && hours < 20;
-
-        //     // Only update when the market is open (including extended hours)
-        //     if (isExtendedHours) {
-        //         fetchPortfolio();
-        //     }
-        // }, 60000); // Update every minute
-
-        // return () => clearInterval(intervalId);
     }, [currentUser, getMultipleStocks]);
 
     const refreshPortfolio = async () => {

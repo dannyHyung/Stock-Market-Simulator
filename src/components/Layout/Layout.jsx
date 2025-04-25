@@ -30,9 +30,10 @@ import Container from '@mui/material/Container';
 
 export default function Layout() {
   const { currentUser, logout } = useAuth();
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem('darkMode') === 'true'
-  );
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode === null ? true : savedMode === 'true';
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [userName, setUserName] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
@@ -96,7 +97,7 @@ export default function Layout() {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Market', icon: <ShowChartIcon />, path: '/market' },
     { text: 'Leaderboard', icon: <LeaderboardIcon />, path: '/leaderboard' },
-    { text: 'History', icon: <HistoryIcon />, path: '/history' }, 
+    { text: 'History', icon: <HistoryIcon />, path: '/history' },
   ];
 
   return (
