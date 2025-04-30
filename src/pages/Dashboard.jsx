@@ -28,34 +28,34 @@ export default function Dashboard() {
         async function fetchPortfolio() {
             try {
                 if (!currentUser) return;
-
+    
                 setLoading(true);
                 const portfolioData = await getUserPortfolio(currentUser.uid);
-
+    
                 if (portfolioData) {
                     // Get stock symbols for price updates
                     const symbols = portfolioData.stocks.map(stock => stock.symbol);
-
+    
                     if (symbols.length > 0) {
                         // Use context to get stock data
                         const stockPrices = await getMultipleStocks(symbols);
-
+    
                         // Update portfolio with current prices
                         await updateStockPrices(currentUser.uid, stockPrices);
-
+    
                         // Fetch updated portfolio
                         const updatedPortfolio = await getUserPortfolio(currentUser.uid);
                         setPortfolio(updatedPortfolio);
-
+    
                         // Calculate total value and daily change
                         let totalStocksValue = 0;
                         let yesterdayPortfolioValue = updatedPortfolio.cash; // Start with current cash value
-
+    
                         updatedPortfolio.stocks.forEach(stock => {
                             // Get the most current price available (after-hours, pre-market, or regular)
                             const stockData = stockPrices[stock.symbol];
                             let currentPrice;
-
+    
                             if (stockData) {
                                 if (stockData.isAfterHours && stockData.postMarketPrice) {
                                     currentPrice = stockData.postMarketPrice;
@@ -67,35 +67,38 @@ export default function Dashboard() {
                             } else {
                                 currentPrice = stock.averagePrice;
                             }
-
+    
                             // Get yesterday's closing price
                             const previousClose = stockData?.regularMarketPreviousClose || currentPrice;
-
+    
                             // Calculate current value of this stock
                             const stockValue = stock.quantity * currentPrice;
                             totalStocksValue += stockValue;
-
+    
                             // Calculate yesterday's value of this SAME stock position
                             const yesterdayStockValue = stock.quantity * previousClose;
                             yesterdayPortfolioValue += yesterdayStockValue;
                         });
-
+    
                         // Current total portfolio value
                         const portfolioTotalValue = updatedPortfolio.cash + totalStocksValue;
                         setTotalValue(portfolioTotalValue);
-
-                        // Get portfolio history
+    
+                        // FIRST UPDATE HISTORY with current value
+                        await updatePortfolioHistory(currentUser.uid, portfolioTotalValue);
+                        
+                        // THEN get the updated portfolio history
                         const history = await getPortfolioHistory(currentUser.uid);
                         setPortfolioHistory(history);
-
+    
                         // Get yesterday's portfolio value using the utility function
                         const yesterdayValue = getYesterdayValue(history);
-
+    
                         if (yesterdayValue !== null) {
                             // Calculate TODAY'S CHANGE using historical data
                             const portfolioDailyChange = portfolioTotalValue - yesterdayValue;
                             const portfolioDailyChangePercentage = (portfolioDailyChange / yesterdayValue) * 100;
-
+    
                             setDailyChange({
                                 value: portfolioDailyChange,
                                 percentage: portfolioDailyChangePercentage
@@ -107,17 +110,14 @@ export default function Dashboard() {
                                 percentage: 0
                             });
                         }
-
-                        // Update portfolio history with current value (for tomorrow's comparison)
-                        await updatePortfolioHistory(currentUser.uid, portfolioTotalValue);
                     } else {
                         setPortfolio(portfolioData);
                         setTotalValue(portfolioData.cash);
-
-                        // Update portfolio history with just cash
+    
+                        // Update portfolio history with just cash FIRST
                         await updatePortfolioHistory(currentUser.uid, portfolioData.cash);
-
-                        // Get portfolio history
+    
+                        // THEN get the updated portfolio history
                         const history = await getPortfolioHistory(currentUser.uid);
                         setPortfolioHistory(history);
                     }
@@ -129,9 +129,9 @@ export default function Dashboard() {
                 setLoading(false);
             }
         }
-
+    
         fetchPortfolio();
-
+    
     }, [currentUser, getMultipleStocks]);
 
     const refreshPortfolio = async () => {
