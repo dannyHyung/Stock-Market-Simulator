@@ -174,7 +174,7 @@ export default function MobileStocksView({ portfolio, onPortfolioUpdate }) {
     // Main table view
     return (
         <Box sx={{ width: '100%', overflow: 'hidden' }}>
-            <Typography variant="h6" component="h2" gutterBottom sx={{ fontSize: '1.1rem' }}>
+            <Typography variant="h6" component="h2" gutterBottom sx={{ fontSize: '1.1rem' }} mb={2}>
                 Your Stocks
             </Typography>
 
