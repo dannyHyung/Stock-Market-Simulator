@@ -14,7 +14,11 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CloseIcon from '@mui/icons-material/Close';
 import { green, red } from '@mui/material/colors';
-import StockDetails from './StocksDetails';
+import WatchlistToggle from '../StockMarket/WatchlistToggle';
+import RemoveIcon from '@mui/icons-material/Remove';
+import AddIcon from '@mui/icons-material/Add';
+import ExtendedHoursPrice from '../StockMarket/ExtendedHoursPrice';
+import StockDialog from './StockDialog';
 
 export default function MobileStocksView({ portfolio, onPortfolioUpdate }) {
     const { currentUser } = useAuth();
@@ -398,69 +402,23 @@ export default function MobileStocksView({ portfolio, onPortfolioUpdate }) {
                 </Table>
             </TableContainer>
 
-            {/* Stock Details Dialog - Full screen for mobile */}
-            <Dialog
+            <StockDialog
                 open={dialogOpen}
                 onClose={handleCloseDialog}
-                maxWidth="md"
-                fullWidth
-                fullScreen={true}
-                PaperProps={{
-                    sx: {
-                        m: 0,
-                        p: 0,
-                        borderRadius: 0,
-                        height: '100%'
-                    }
-                }}
-            >
-                {selectedStock && (
-                    <>
-                        <DialogTitle sx={{
-                            background: theme => theme.palette.mode === 'dark'
-                                ? 'rgba(255, 255, 255, 0.03)'
-                                : 'rgba(0, 0, 0, 0.01)',
-                            borderBottom: theme => `1px solid ${theme.palette.divider}`,
-                            py: 1,
-                            px: 1.5,
-                            minHeight: '48px',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                        }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
-                                {selectedStock.symbol} - {selectedStock.companyName}
-                            </Typography>
-                            <IconButton
-                                onClick={handleCloseDialog}
-                                size="small"
-                                edge="end"
-                                sx={{ p: 0.5 }}
-                            >
-                                <CloseIcon fontSize="small" />
-                            </IconButton>
-                        </DialogTitle>
-
-                        <DialogContent sx={{ p: 1.5, pt: 2 }}>
-                            <StockDetails
-                                stock={selectedStock}
-                                stockDetails={stockDetails}
-                                loading={dialogLoading}
-                                tradeType={tradeType}
-                                setTradeType={setTradeType}
-                                quantity={quantity}
-                                setQuantity={setQuantity}
-                                portfolio={portfolio}
-                                onBuy={handleBuyStock}
-                                onSell={handleSellStock}
-                                calculateMaxBuyQuantity={calculateMaxBuyQuantity}
-                                calculateTransactionAmount={calculateTransactionAmount}
-                                showPortfolioInfo={true}
-                            />
-                        </DialogContent>
-                    </>
-                )}
-            </Dialog>
+                selectedStock={selectedStock}
+                stockDetails={stockDetails}
+                loading={dialogLoading}
+                tradeType={tradeType}
+                setTradeType={setTradeType}
+                quantity={quantity}
+                setQuantity={setQuantity}
+                portfolio={portfolio}
+                onBuy={handleBuyStock}
+                onSell={handleSellStock}
+                calculateMaxBuyQuantity={calculateMaxBuyQuantity}
+                calculateTransactionAmount={calculateTransactionAmount}
+                showPortfolioInfo={true}
+            />
 
             {/* Message Snackbar */}
             <Snackbar
