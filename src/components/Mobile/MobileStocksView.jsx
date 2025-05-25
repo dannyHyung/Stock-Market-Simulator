@@ -177,231 +177,236 @@ export default function MobileStocksView({ portfolio, onPortfolioUpdate }) {
 
     // Main table view
     return (
-        <Box sx={{ width: '100%', overflow: 'hidden' }}>
-            <Typography variant="h6" component="h2" gutterBottom sx={{ fontSize: '1.1rem' }} mb={2}>
-                Your Stocks
-            </Typography>
+        <Box sx={{
+            width: '100%',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            boxShadow: theme => theme.palette.mode === 'dark'
+                ? '0 0 15px rgba(66, 153, 225, 0.15), 0 0 8px rgba(66, 153, 225, 0.08)'
+                : '0 6px 16px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
+            border: theme => theme.palette.mode === 'dark'
+                ? '1px solid rgba(255, 255, 255, 0.1)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+            background: theme => theme.palette.mode === 'dark'
+                ? 'linear-gradient(145deg, #2d2d2d 0%, #1f1f1f 100%)'
+                : 'linear-gradient(145deg, #ffffff 0%, #f7f9fc 100%)',
+            transition: 'all 0.2s',
+            '&:hover': {
+                boxShadow: theme => theme.palette.mode === 'dark'
+                    ? '0 0 20px rgba(66, 153, 225, 0.25), 0 0 10px rgba(66, 153, 225, 0.15)'
+                    : '0 10px 20px rgba(0,0,0,0.12), 0 6px 10px rgba(0,0,0,0.08)',
+                border: theme => theme.palette.mode === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.15)'
+                    : '1px solid rgba(0, 0, 0, 0.1)',
+            },
+        }}>
+            {/* Header inside the unified container */}
+            <Box sx={{
+                p: 1,
+                borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="h6" component="h2" sx={{
+                        fontSize: '1.1rem',
+                        fontWeight: 600
+                    }}>
+                        Your Stocks
+                    </Typography>
 
-            <TableContainer
-                component={Paper}
-                sx={{
-                    borderRadius: '10px',
-                    overflow: 'hidden',
-                    // Add the same glow effect as CustomCard
-                    boxShadow: theme => theme.palette.mode === 'dark'
-                        ? '0 0 15px rgba(66, 153, 225, 0.15), 0 0 8px rgba(66, 153, 225, 0.08)'
-                        : '0 6px 16px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
-                    border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
-                    transition: 'all 0.2s',
-                    background: theme => theme.palette.mode === 'dark'
-                        ? 'linear-gradient(145deg, #2d2d2d 0%, #1f1f1f 100%)'
-                        : 'linear-gradient(145deg, #ffffff 0%, #f7f9fc 100%)',
-                    '&:hover': {
-                        boxShadow: theme => theme.palette.mode === 'dark'
-                            ? '0 0 20px rgba(66, 153, 225, 0.25), 0 0 10px rgba(66, 153, 225, 0.15)'
-                            : '0 10px 20px rgba(0,0,0,0.12), 0 6px 10px rgba(0,0,0,0.08)',
-                        border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.15)' : 'none',
-                    },
-                }}
-            >
-                <Table size="small" sx={{ minWidth: 320 }}>
-                    <TableHead>
-                        <TableRow sx={{
-                            backgroundColor: theme => theme.palette.mode === 'dark'
-                                ? 'rgba(255,255,255,0.08)'
-                                : 'rgba(0,0,0,0.04)',
-                            borderBottom: theme => `2px solid ${theme.palette.divider}`
+                </Box>
+
+            </Box>
+
+            {/* Table directly inside the main container */}
+            <Table size="small" sx={{ minWidth: 320 }}>
+                <TableHead>
+                    <TableRow sx={{
+                        backgroundColor: theme => theme.palette.mode === 'dark'
+                            ? 'rgba(255,255,255,0.08)'
+                            : 'rgba(0,0,0,0.04)',
+                        borderBottom: theme => `2px solid ${theme.palette.divider}`
+                    }}>
+                        <TableCell sx={{
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                            py: 0.5,  // Reduced from 1 to 0.5
+                            px: 0.75, // Reduced from 1 to 0.75
+                            width: '35%'
                         }}>
-                            <TableCell sx={{
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                py: 1.5,  // Increased padding
-                                px: 1.5,
-                                letterSpacing: '0.025em'
-                            }}>
-                                Stock
-                            </TableCell>
-                            <TableCell align="right" sx={{
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                py: 1.5,  // Increased padding
-                                px: 1,
-                                letterSpacing: '0.025em'
-                            }}>
-                                Shares
-                            </TableCell>
-                            <TableCell align="right" sx={{
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                py: 1.5,  // Increased padding
-                                px: 1,
-                                letterSpacing: '0.025em'
-                            }}>
-                                Price
-                            </TableCell>
-                            <TableCell align="right" sx={{
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                py: 1.5,  // Increased padding
-                                px: 1,
-                                letterSpacing: '0.025em'
-                            }}>
-                                Value
-                            </TableCell>
-                            <TableCell align="right" sx={{
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                py: 1.5,  // Increased padding
-                                px: 1,
-                                letterSpacing: '0.025em'
-                            }}>
-                                P&L
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {portfolio.stocks.map(stock => {
-                            const currentPrice = stock.currentPrice || stock.averagePrice;
-                            const totalValue = stock.quantity * currentPrice;
-                            const gainLoss = totalValue - (stock.quantity * stock.averagePrice);
-                            const gainLossPercentage = (gainLoss / (stock.quantity * stock.averagePrice)) * 100;
+                            Stock
+                        </TableCell>
+                        <TableCell align="center" sx={{
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                            py: 0.5,  // Reduced from 1 to 0.5
+                            px: 0.25, // Reduced from 0.5 to 0.25
+                            width: '15%'
+                        }}>
+                            Qty
+                        </TableCell>
+                        <TableCell align="right" sx={{
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                            py: 0.5,  // Reduced from 1 to 0.5
+                            px: 0.25, // Reduced from 0.5 to 0.25
+                            width: '18%'
+                        }}>
+                            Price
+                        </TableCell>
+                        <TableCell align="right" sx={{
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                            py: 0.5,  // Reduced from 1 to 0.5
+                            px: 0.25, // Reduced from 0.5 to 0.25
+                            width: '17%'
+                        }}>
+                            Value
+                        </TableCell>
+                        <TableCell align="right" sx={{
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                            py: 0.5,  // Reduced from 1 to 0.5
+                            px: 0.25, // Reduced from 0.5 to 0.25
+                            width: '15%'
+                        }}>
+                            P&L
+                        </TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {portfolio.stocks.map(stock => {
+                        const currentPrice = stock.currentPrice || stock.averagePrice;
+                        const totalValue = stock.quantity * currentPrice;
+                        const gainLoss = totalValue - (stock.quantity * stock.averagePrice);
+                        const gainLossPercentage = (gainLoss / (stock.quantity * stock.averagePrice)) * 100;
 
-                            return (
-                                <TableRow
-                                    key={stock.symbol}
-                                    hover
-                                    onClick={() => handleStockClick(stock)}
-                                    sx={{
-                                        cursor: 'pointer',
-                                        minHeight: '60px',  // Increased row height
-                                        '&:hover': {
-                                            backgroundColor: theme => theme.palette.mode === 'dark'
-                                                ? 'rgba(66, 153, 225, 0.08)'
-                                                : 'rgba(25, 118, 210, 0.04)',
-                                            transform: 'scale(1.01)',  // Subtle scale on hover
-                                            transition: 'all 0.2s ease'
-                                        },
-                                        '&:last-child td': {
-                                            borderBottom: 'none'
-                                        }
-                                    }}
-                                >
-                                    {/* Stock Symbol & Company */}
-                                    <TableCell sx={{ py: 1.5, px: 1.5, minWidth: 0 }}>  {/* Increased padding */}
-                                        <Box>
-                                            <Typography variant="body2" sx={{
-                                                fontSize: '0.9rem',
-                                                fontWeight: 'bold',
-                                                lineHeight: 1.3,
-                                                color: theme => theme.palette.mode === 'dark' ? '#90caf9' : '#1976d2'
-                                            }}>
-                                                {stock.symbol}
-                                            </Typography>
-                                            <Typography
-                                                variant="caption"
-                                                color="text.secondary"
-                                                sx={{
-                                                    fontSize: '0.7rem',
-                                                    lineHeight: 1.2,
-                                                    whiteSpace: 'nowrap',
-                                                    display: 'block',
-                                                    maxWidth: '90px',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical',
-                                                    wordBreak: 'break-word'
-                                                }}
-                                            >
-                                                {stock.companyName}
-                                            </Typography>
-                                        </Box>
-                                    </TableCell>
-
-                                    {/* Shares */}
-                                    <TableCell align="center" sx={{ py: 1.5, px: 1 }}>  {/* Increased padding */}
+                        return (
+                            <TableRow
+                                key={stock.symbol}
+                                hover
+                                onClick={() => handleStockClick(stock)}
+                                sx={{
+                                    cursor: 'pointer',
+                                    '&:hover': {
+                                        backgroundColor: theme => theme.palette.mode === 'dark'
+                                            ? 'rgba(66, 153, 225, 0.08)'
+                                            : 'rgba(25, 118, 210, 0.04)',
+                                        transform: 'scale(1.01)',
+                                        transition: 'all 0.2s ease'
+                                    },
+                                    '&:last-child td': {
+                                        borderBottom: 'none'
+                                    }
+                                }}
+                            >
+                                {/* Your existing table cells */}
+                                <TableCell sx={{ py: 1, px: 1, minWidth: 0 }}>
+                                    <Box>
                                         <Typography variant="body2" sx={{
-                                            fontSize: '0.85rem',
-                                            fontWeight: '500'
+                                            fontSize: '0.8rem',
+                                            fontWeight: 'bold',
+                                            lineHeight: 1.2,
+                                            color: theme => theme.palette.mode === 'dark' ? '#90caf9' : '#1976d2'
                                         }}>
-                                            {stock.quantity}
+                                            {stock.symbol}
                                         </Typography>
-                                    </TableCell>
-
-                                    {/* Current Price */}
-                                    <TableCell align="right" sx={{ py: 1.5, px: 1 }}>  {/* Increased padding */}
-                                        <Typography variant="body2" sx={{
-                                            fontSize: '0.85rem',
-                                            fontWeight: '600'
-                                        }}>
-                                            ${currentPrice.toFixed(2)}
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{
+                                                display: { xs: 'block', sm: 'none' },
+                                                fontSize: '0.7rem',
+                                                lineHeight: 1.2,
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                                maxWidth: '80px'
+                                              }}
+                                        >
+                                            {stock.companyName}
                                         </Typography>
-                                    </TableCell>
+                                    </Box>
+                                </TableCell>
 
-                                    {/* Total Value */}
-                                    <TableCell align="right" sx={{ py: 1.5, px: 1 }}>  {/* Increased padding */}
-                                        <Typography variant="body2" sx={{
-                                            fontSize: '0.85rem',
-                                            fontWeight: '500'
-                                        }}>
-                                            ${totalValue.toFixed(2)}
-                                        </Typography>
-                                    </TableCell>
+                                <TableCell align="center" sx={{ py: 1, px: 0.5 }}>
+                                    <Typography variant="body2" sx={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: '500'
+                                    }}>
+                                        {stock.quantity}
+                                    </Typography>
+                                </TableCell>
 
-                                    {/* Gain/Loss */}
-                                    <TableCell align="right" sx={{ py: 1.5, px: 1 }}>  {/* Increased padding */}
-                                        <Box sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'flex-end',
-                                            minWidth: 0,
-                                            gap: 0.5
-                                        }}>
+                                <TableCell align="right" sx={{ py: 1, px: 0.5 }}>
+                                    <Typography variant="body2" sx={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: '600'
+                                    }}>
+                                        ${currentPrice.toFixed(2)}
+                                    </Typography>
+                                </TableCell>
+
+                                <TableCell align="right" sx={{ py: 1, px: 0.5, minWidth: 70 }}>
+                                    <Typography variant="body2" sx={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: '500'
+                                    }}>
+                                        ${totalValue.toFixed(2)}
+                                    </Typography>
+                                </TableCell>
+
+                                <TableCell align="right" sx={{ py: 1, px: 0.5 }}>
+                                    <Box sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'flex-end',
+                                        minWidth: 60
+                                    }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
                                             {gainLoss >= 0 ? (
                                                 <ArrowDropUpIcon sx={{
                                                     color: green[500],
-                                                    fontSize: '1.1rem',
-                                                    filter: 'drop-shadow(0 0 2px rgba(76, 175, 80, 0.3))'  // Subtle glow
+                                                    fontSize: '0.9rem'
                                                 }} />
                                             ) : (
                                                 <ArrowDropDownIcon sx={{
                                                     color: red[500],
-                                                    fontSize: '1.1rem',
-                                                    filter: 'drop-shadow(0 0 2px rgba(244, 67, 54, 0.3))'  // Subtle glow
+                                                    fontSize: '0.9rem'
                                                 }} />
                                             )}
-                                            <Box sx={{ textAlign: 'right', minWidth: 0 }}>
-                                                <Typography
-                                                    variant="body2"
-                                                    color={gainLoss >= 0 ? green[500] : red[500]}
-                                                    sx={{
-                                                        fontSize: '0.8rem',
-                                                        fontWeight: 'bold',
-                                                        lineHeight: 1.2
-                                                    }}
-                                                >
-                                                    ${Math.abs(gainLoss).toFixed(2)}
-                                                </Typography>
-                                                <Typography
-                                                    variant="caption"
-                                                    color={gainLoss >= 0 ? green[500] : red[500]}
-                                                    sx={{
-                                                        fontSize: '0.65rem',
-                                                        lineHeight: 1,
-                                                        display: 'block',
-                                                        fontWeight: '500'
-                                                    }}
-                                                >
-                                                    {gainLoss >= 0 ? '+' : ''}{gainLossPercentage.toFixed(1)}%
-                                                </Typography>
-                                            </Box>
+                                            <Typography
+                                                variant="body2"
+                                                color={gainLoss >= 0 ? green[500] : red[500]}
+                                                sx={{
+                                                    fontSize: '0.7rem',
+                                                    fontWeight: 'bold',
+                                                    lineHeight: 1
+                                                }}
+                                            >
+                                                ${Math.abs(gainLoss).toFixed(2)}
+                                            </Typography>
                                         </Box>
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-
+                                        <Typography
+                                            variant="caption"
+                                            color={gainLoss >= 0 ? green[500] : red[500]}
+                                            sx={{
+                                                fontSize: '0.6rem',
+                                                lineHeight: 1,
+                                                fontWeight: '500'
+                                            }}
+                                        >
+                                            {gainLoss >= 0 ? '+' : ''}{gainLossPercentage.toFixed(2)}%
+                                        </Typography>
+                                    </Box>
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
+                </TableBody>
+            </Table>
             <StockDialog
                 open={dialogOpen}
                 onClose={handleCloseDialog}
@@ -440,6 +445,6 @@ export default function MobileStocksView({ portfolio, onPortfolioUpdate }) {
                     {transactionMessage.text}
                 </Alert>
             </Snackbar>
-        </Box>
+        </Box >
     );
 }

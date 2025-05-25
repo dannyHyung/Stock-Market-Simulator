@@ -105,21 +105,26 @@ export default function Layout() {
       <CssBaseline />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AppBar position="fixed">
-          <Toolbar>
+          <Toolbar sx={{ minHeight: { xs: '56px', sm: '64px' } }}> {/* Shorter toolbar on mobile */}
             <IconButton
               size="large"
               edge="start"
               color="inherit"
               aria-label="menu"
-              sx={{ mr: 2, display: { sm: 'none' } }}
+              sx={{
+                mr: { xs: 1, sm: 2 }, // Less margin on mobile
+                display: { sm: 'none' },
+                p: { xs: 1, sm: 1.5 } // Smaller padding on mobile
+              }}
               onClick={toggleDrawer(true)}
             >
-              <MenuIcon />
+              <MenuIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
             </IconButton>
             <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
               <ShowChartIcon sx={{
-                mr: 1,
+                mr: { xs: 0.5, sm: 1 }, // Less margin on mobile
                 color: '#21CBF3',
+                fontSize: { xs: '1.25rem', sm: '1.5rem' } // Smaller icon on mobile
               }} />
               <Typography
                 variant="h5"
@@ -129,34 +134,44 @@ export default function Layout() {
                   fontWeight: 700,
                   background: theme => theme.palette.mode === 'dark'
                     ? 'linear-gradient(45deg, #1976d2 30%, #21CBF3 90%)'
-                    : 'linear-gradient(45deg, #ffffff 30%, #f0f0f0 90%)', // White gradient in light mode
+                    : 'linear-gradient(45deg, #ffffff 30%, #f0f0f0 90%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   letterSpacing: '0.5px',
-                  fontSize: { xs: '1rem', sm: '1.5rem' },
+                  fontSize: { xs: '0.9rem', sm: '1.5rem' }, // Much smaller on mobile
                   lineHeight: { xs: 1.2, sm: 1.5 },
                 }}
               >
                 Stock Market Simulator
               </Typography>
             </Box>
-            <IconButton onClick={toggleDarkMode} color="inherit">
-              {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+            <IconButton
+              onClick={toggleDarkMode}
+              color="inherit"
+              sx={{ p: { xs: 1, sm: 1.5 } }} // Smaller padding on mobile
+            >
+              {darkMode ? (
+                <Brightness7Icon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />
+              ) : (
+                <Brightness4Icon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />
+              )}
             </IconButton>
             <IconButton
               onClick={handleUserMenuClick}
               color="inherit"
               aria-controls="user-menu"
               aria-haspopup="true"
+              sx={{ p: { xs: 0.5, sm: 1 } }} // Smaller padding on mobile
             >
               <Avatar sx={{
-                width: 32,
-                height: 32,
+                width: { xs: 28, sm: 32 }, // Smaller avatar on mobile
+                height: { xs: 28, sm: 32 },
                 background: theme => theme.palette.mode === 'dark'
-                  ? 'linear-gradient(135deg, #424242 0%, #616161 100%)' // Subtle gray in dark mode
-                  : 'linear-gradient(135deg, #263238 0%, #37474F 100%)', // Dark slate in light mode
+                  ? 'linear-gradient(135deg, #424242 0%, #616161 100%)'
+                  : 'linear-gradient(135deg, #263238 0%, #37474F 100%)',
                 color: 'white',
                 fontWeight: 'bold',
+                fontSize: { xs: '0.8rem', sm: '1rem' }, // Smaller font on mobile
                 boxShadow: theme => theme.palette.mode === 'dark'
                   ? '0 2px 4px rgba(0,0,0,0.2)'
                   : 'none',
@@ -187,6 +202,7 @@ export default function Layout() {
           </Toolbar>
         </AppBar>
 
+        {/* Mobile Drawer - Much more compact */}
         <Drawer
           anchor="left"
           open={drawerOpen}
@@ -194,14 +210,30 @@ export default function Layout() {
           variant="temporary"
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { width: 240, boxSizing: 'border-box' },
+            '& .MuiDrawer-paper': {
+              width: { xs: 200, sm: 240 }, // Narrower on mobile
+              boxSizing: 'border-box'
+            },
           }}
         >
-          <Box sx={{ padding: '1rem' }}>
-            <Typography variant="h6">Stock Market Simulator</Typography>
+          {/* Compact header */}
+          <Box sx={{
+            padding: '1rem', // Less padding on mobile
+            borderBottom: theme => `1px solid ${theme.palette.divider}`
+          }}>
+            <Typography
+              variant="h7"
+              sx={{
+                fontSize: { xs: '0.9rem', sm: '1.25rem' }, // Smaller font on mobile
+                fontWeight: 600
+              }}
+            >
+              Stock Market Simulator
+            </Typography>
           </Box>
-          <Divider />
-          <List>
+
+          {/* Compact menu items */}
+          <List sx={{ pt: 0 }}>
             {menuItems.map((item) => (
               <ListItem
                 key={item.text}
@@ -213,6 +245,9 @@ export default function Layout() {
                 <ListItemButton
                   selected={location.pathname === item.path}
                   sx={{
+                    py: { xs: 1, sm: 1.5 }, // Less vertical padding on mobile
+                    px: { xs: 1.5, sm: 2 }, // Less horizontal padding on mobile
+                    minHeight: { xs: '40px', sm: '48px' }, // Shorter rows on mobile
                     color: theme => theme.palette.mode === 'dark'
                       ? 'white'
                       : 'rgba(0, 0, 0, 0.87)',
@@ -230,12 +265,24 @@ export default function Layout() {
                     sx={{
                       color: theme => theme.palette.mode === 'dark'
                         ? 'white'
-                        : 'inherit'
+                        : 'inherit',
+                      minWidth: { xs: '32px', sm: '40px' }, // Smaller icon space on mobile
+                      '& .MuiSvgIcon-root': {
+                        fontSize: { xs: '1.1rem', sm: '1.25rem' } // Smaller icons on mobile
+                      }
                     }}
                   >
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText primary={item.text} />
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      sx: {
+                        fontSize: { xs: '0.85rem', sm: '1rem' }, // Smaller text on mobile
+                        fontWeight: 500
+                      }
+                    }}
+                  />
                 </ListItemButton>
               </ListItem>
             ))}
@@ -243,6 +290,7 @@ export default function Layout() {
         </Drawer>
 
         <Box sx={{ display: 'flex', flexGrow: 1 }}>
+          {/* Desktop Sidebar - Keep original size */}
           <Box
             component="nav"
             sx={{
@@ -308,12 +356,23 @@ export default function Layout() {
             component="main"
             sx={{
               flexGrow: 1,
-              p: 3,
-              mt: 8,
-              width: { sm: `calc(100% - 240px)` },
+              p: { xs: 1, sm: 3 }, // Already optimized
+              mt: { xs: 7, sm: 8 }, // Smaller top margin on mobile due to shorter toolbar
+              width: {
+                xs: '100%',
+                sm: `calc(100% - 240px)`
+              },
+              overflow: 'hidden',
             }}
           >
-            <Container maxWidth="lg">
+            <Container
+              maxWidth="lg"
+              sx={{
+                px: { xs: 0.5, sm: 2 }, // Even less padding on mobile
+                width: '100%',
+                maxWidth: '100%',
+              }}
+            >
               <Outlet />
             </Container>
           </Box>

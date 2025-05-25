@@ -18,6 +18,7 @@ import Button from '@mui/material/Button';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useTheme, useMediaQuery } from '@mui/material';
 import { green, red } from '@mui/material/colors';
 
 export default function Watchlist({ onSelectStock }) {
@@ -26,6 +27,9 @@ export default function Watchlist({ onSelectStock }) {
   const [watchlist, setWatchlist] = useState([]);
   const [stockPrices, setStockPrices] = useState({});
   const [loading, setLoading] = useState(true);
+  const theme = useTheme();
+
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     fetchWatchlist();
@@ -99,12 +103,28 @@ export default function Watchlist({ onSelectStock }) {
   return (
     <CustomTable>
       <TableHead>
-        <TableRow>
-          <TableCell>Symbol</TableCell>
-          <TableCell>Company</TableCell>
-          <TableCell align="right">Price</TableCell>
-          <TableCell align="right">Change</TableCell>
-          <TableCell align="right">Actions</TableCell>
+        <TableRow sx={{
+          '& .MuiTableCell-root': {
+            py: { xs: 0.5, sm: 0.75 }, // Compact header padding
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            fontWeight: 600
+          }
+        }}>
+          <TableCell sx={{ width: { xs: '20%', sm: 'auto' } }}>
+            Symbol
+          </TableCell>
+          <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+            Company
+          </TableCell>
+          <TableCell align="right" sx={{ width: { xs: '25%', sm: 'auto' } }}>
+            Price
+          </TableCell>
+          <TableCell align="right" sx={{ width: { xs: '35%', sm: 'auto' } }}>
+            Change
+          </TableCell>
+          <TableCell align="right" sx={{ width: { xs: '20%', sm: 'auto' } }}>
+            Actions
+          </TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -122,16 +142,77 @@ export default function Watchlist({ onSelectStock }) {
                 symbol: stock.symbol,
                 shortname: stock.companyName
               })}
-              sx={{ cursor: onSelectStock ? 'pointer' : 'default' }}
+              sx={{
+                cursor: onSelectStock ? 'pointer' : 'default',
+                '&:hover': {
+                  backgroundColor: theme => theme.palette.mode === 'dark'
+                    ? 'rgba(66, 153, 225, 0.08)'
+                    : 'rgba(25, 118, 210, 0.04)',
+                }
+              }}
             >
-              <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                {stock.symbol}
+              {/* Symbol - Show company name on mobile as subtitle */}
+              <TableCell
+                component="th"
+                scope="row"
+                sx={{
+                  fontWeight: 'bold',
+                  py: { xs: 1, sm: 1.5 },
+                  px: { xs: 1, sm: 2 },
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                }}
+              >
+                <Box>
+                  <Typography variant="body2" sx={{
+                    fontWeight: 'bold',
+                    fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                    color: 'primary.main'
+                  }}>
+                    {stock.symbol}
+                  </Typography>
+                  {/* Show company name under symbol on mobile */}
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      display: { xs: 'block', sm: 'none' },
+                      fontSize: '0.7rem',
+                      lineHeight: 1.2,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      maxWidth: '80px'
+                    }}
+                  >
+                    {stock.companyName}
+                  </Typography>
+                </Box>
               </TableCell>
-              <TableCell>{stock.companyName}</TableCell>
-              <TableCell align="right">
+
+              {/* Company - Hidden on mobile */}
+              <TableCell sx={{
+                display: { xs: 'none', sm: 'table-cell' },
+                py: { xs: 1, sm: 1.5 },
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              }}>
+                {stock.companyName}
+              </TableCell>
+
+              {/* Price */}
+              <TableCell align="right" sx={{
+                py: { xs: 1, sm: 1.5 },
+                px: { xs: 0.5, sm: 2 },
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                fontWeight: { xs: 'bold', sm: 'normal' }
+              }}>
                 {price ? `$${price.toFixed(2)}` : 'N/A'}
               </TableCell>
-              <TableCell align="right">
+
+              {/* Change */}
+              <TableCell align="right" sx={{
+                py: { xs: 1, sm: 1.5 },
+                px: { xs: 0.5, sm: 2 }
+              }}>
                 {change !== 0 && (
                   <Box
                     sx={{
@@ -141,15 +222,39 @@ export default function Watchlist({ onSelectStock }) {
                       color: change >= 0 ? green[500] : red[500]
                     }}
                   >
-                    {change >= 0 ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                    {change.toFixed(2)} ({changePercent.toFixed(2)}%)
+                    {change >= 0 ? (
+                      <ArrowDropUpIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                    ) : (
+                      <ArrowDropDownIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                    )}
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography variant="body2" sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        fontWeight: 'bold',
+                        lineHeight: 1.2
+                      }}>
+                        {change.toFixed(2)}
+                      </Typography>
+                      <Typography variant="caption" sx={{
+                        fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                        lineHeight: 1
+                      }}>
+                        ({changePercent.toFixed(2)}%)
+                      </Typography>
+                    </Box>
                   </Box>
                 )}
               </TableCell>
-              <TableCell align="right">
+
+              {/* Actions */}
+              <TableCell align="right" sx={{
+                py: { xs: 0.5, sm: 1 },
+                px: { xs: 0.5, sm: 1 }
+              }}>
                 <WatchlistToggle
                   stock={stock}
                   onToggle={(isAdded) => handleWatchlistToggle(stock.symbol, isAdded)}
+                  size={isMobile ? 'small' : 'medium'} // Pass size prop if WatchlistToggle supports it
                 />
               </TableCell>
             </TableRow>

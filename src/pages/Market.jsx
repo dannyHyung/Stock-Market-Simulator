@@ -21,7 +21,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import { Dialog, DialogContent, DialogTitle, Tooltip } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, Tooltip, useTheme, useMediaQuery } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
@@ -43,6 +43,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { green, red } from '@mui/material/colors';
+import StockDialog from '../components/Mobile/StockDialog';
 
 export default function Market() {
   const { currentUser } = useAuth();
@@ -52,18 +53,22 @@ export default function Market() {
   const [selectedStock, setSelectedStock] = useState(null);
   const [stockDetails, setStockDetails] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [stockDetailsLoading, setStockDetailsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [portfolio, setPortfolio] = useState(null);
   const [tradeType, setTradeType] = useState('buy');
   const [showWatchlist, setShowWatchlist] = useState(true);
+  const theme = useTheme();
+
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Search for stocks
   async function handleSearch(e) {
     e?.preventDefault();
     if (!searchQuery) return;
 
-    setLoading(true);
+    setSearchLoading(true);
     setMessage({ text: '', type: '' });
 
     try {
@@ -83,7 +88,7 @@ export default function Market() {
     } catch (error) {
       setMessage({ text: 'Error searching for stocks', type: 'error' });
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   }
 
@@ -112,7 +117,7 @@ export default function Market() {
   //   }
   // }
   async function handleSelectStock(stock) {
-    setLoading(true);
+    setStockDetailsLoading(true);
     setStockDetails(null);
     setQuantity(1);
 
@@ -139,7 +144,7 @@ export default function Market() {
     } catch (error) {
       setMessage({ text: 'Error fetching stock details', type: 'error' });
     } finally {
-      setLoading(false);
+      setStockDetailsLoading(false);
     }
   }
 
@@ -147,7 +152,7 @@ export default function Market() {
   async function handleBuyStock() {
     if (!selectedStock || !stockDetails || quantity <= 0) return;
 
-    setLoading(true);
+    setStockDetailsLoading(true);
     setMessage({ text: '', type: '' });
 
     try {
@@ -177,7 +182,7 @@ export default function Market() {
     } catch (error) {
       setMessage({ text: 'Error purchasing stock', type: 'error' });
     } finally {
-      setLoading(false);
+      setStockDetailsLoading(false);
     }
   }
 
@@ -185,7 +190,7 @@ export default function Market() {
   async function handleSellStock() {
     if (!selectedStock || !stockDetails || quantity <= 0) return;
 
-    setLoading(true);
+    setStockDetailsLoading(true);
     setMessage({ text: '', type: '' });
 
     try {
@@ -193,7 +198,7 @@ export default function Market() {
 
       if (!ownedStock || ownedStock.quantity < quantity) {
         setMessage({ text: `You don't own enough shares to sell`, type: 'error' });
-        setLoading(false);
+        setStockDetailsLoading(false);
         return;
       }
 
@@ -228,7 +233,7 @@ export default function Market() {
     } catch (error) {
       setMessage({ text: 'Error selling stock', type: 'error' });
     } finally {
-      setLoading(false);
+      setStockDetailsLoading(false);
     }
   }
 
@@ -247,14 +252,17 @@ export default function Market() {
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" sx={{
+        fontSize: { xs: '1.5rem', sm: '2.125rem' }
+      }}>
         Stock Market
       </Typography>
 
       {/* Search Form */}
       <CustomCard
         sx={{
-          mb: 4,
+          mt: { xs: 2, sm: 4 }, // Reduced top margin on mobile
+          mb: { xs: 3, sm: 4 }, // Reduced bottom margin on mobile
           transition: 'all 0.3s ease',
           '&:focus-within': {
             boxShadow: theme => theme.palette.mode === 'dark'
@@ -272,35 +280,40 @@ export default function Market() {
             alignItems: 'center',
             flexDirection: { xs: 'column', sm: 'row' },
             overflow: 'hidden',
-            borderRadius: '10px'
+            borderRadius: '10px',
+            gap: { xs: 0, sm: 0 } // Remove any gaps
           }}
         >
           <Box sx={{
             flexGrow: 1,
             width: { xs: '100%', sm: 'auto' },
-            p: { xs: 2, sm: '14px 20px' }
+            p: { xs: '12px 16px', sm: '14px 20px' } // Reduced padding on mobile
           }}>
             <TextField
               fullWidth
-              variant="standard" // Changes to a cleaner look without outlines
+              variant="standard"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for a stock (e.g., AAPL, Microsoft)"
               InputProps={{
-                disableUnderline: true, // Removes the underline for cleaner look
+                disableUnderline: true,
                 startAdornment: (
                   <InputAdornment position="start">
                     <SearchIcon sx={{
                       color: theme => theme.palette.mode === 'dark'
                         ? 'rgba(255, 255, 255, 0.7)'
-                        : 'rgba(0, 0, 0, 0.5)'
+                        : 'rgba(0, 0, 0, 0.5)',
+                      fontSize: { xs: '1.1rem', sm: '1.25rem' } // Smaller icon on mobile
                     }} />
                   </InputAdornment>
                 ),
               }}
               sx={{
                 '& .MuiInputBase-root': {
-                  fontSize: '1.1rem',
+                  fontSize: { xs: '0.95rem', sm: '1.1rem' }, // Smaller font on mobile
+                },
+                '& .MuiInputAdornment-root': {
+                  marginRight: { xs: '8px', sm: '12px' } // Reduce spacing on mobile
                 }
               }}
             />
@@ -308,16 +321,25 @@ export default function Market() {
           <Button
             type="submit"
             variant="filled"
-            disabled={loading}
+            disabled={searchLoading}
+            size={isMobile ? 'small' : 'medium'} // Add this line
             sx={{
               width: { xs: '100%', sm: 'auto' },
-              minWidth: { sm: '120px' },
+              minWidth: { xs: '100%', sm: '120px' },
+              mx: { xs: 2, sm: 0 }, // Add horizontal margin on mobile
+              mb: { xs: 1.5, sm: 0 }, // Add bottom margin on mobile
+              py: { xs: 1, sm: 1.5 }, // Reduce vertical padding on mobile
+              fontSize: { xs: '0.875rem', sm: '0.9375rem' }, // Smaller font on mobile
               transition: 'all 0.2s'
             }}
           >
-            {loading ? (
+            {searchLoading ? (
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                <CircularProgress
+                  size={isMobile ? 16 : 20}
+                  color="inherit"
+                  sx={{ mr: 1 }}
+                />
                 <span>Searching...</span>
               </Box>
             ) : (
@@ -346,11 +368,34 @@ export default function Market() {
 
           <CustomTable sx={{ '&:hover': { transform: 'none' } }}>
             <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>Symbol</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Exchange</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>Action</TableCell>
+              <TableRow sx={{
+                '& .MuiTableCell-root': {
+                  py: { xs: 1, sm: 1.5 }, // Apply to all header cells
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  fontWeight: 600
+                }
+              }}>
+                <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                  Symbol
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                  Name
+                </TableCell>
+                {/* Hide Exchange column on mobile */}
+                <TableCell sx={{
+                  fontWeight: 600,
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  display: { xs: 'none', sm: 'table-cell' }
+                }}>
+                  Exchange
+                </TableCell>
+                <TableCell align="right" sx={{
+                  fontWeight: 600,
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  width: { xs: '80px', sm: 'auto' } // Fixed width on mobile
+                }}>
+                  Action
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -359,40 +404,64 @@ export default function Market() {
                   key={stock.symbol}
                   hover
                   sx={{
+                    cursor: { xs: 'pointer', sm: 'default' }, // Make row clickable on mobile
                     '&:hover': {
                       backgroundColor: theme => theme.palette.mode === 'dark'
                         ? 'rgba(255, 255, 255, 0.05)'
                         : 'rgba(0, 0, 0, 0.03)',
                     }
                   }}
+                  onClick={isMobile ? () => handleSelectStock(stock) : undefined} // Add this line
                 >
                   <TableCell
                     component="th"
                     scope="row"
                     sx={{
                       fontWeight: 700,
-                      fontSize: '0.95rem'
+                      fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                      py: { xs: 1, sm: 1.5 }, // Reduced padding on mobile
+                      px: { xs: 1, sm: 2 }
                     }}
                   >
                     {stock.symbol}
                   </TableCell>
-                  <TableCell sx={{ maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {stock.longname || stock.shortname}
+                  <TableCell sx={{
+                    maxWidth: { xs: 120, sm: 250 }, // Shorter max width on mobile
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    py: { xs: 1, sm: 1.5 },
+                    px: { xs: 0.5, sm: 2 }
+                  }}>
+                    {/* Show only company name on mobile, or truncate better */}
+                    <span title={stock.longname || stock.shortname}>
+                      {stock.longname || stock.shortname}
+                    </span>
                   </TableCell>
-                  <TableCell>{stock.exchange}</TableCell>
+                  {/* Hide Exchange column on mobile */}
+                  <TableCell sx={{
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    display: { xs: 'none', sm: 'table-cell' },
+                    py: { xs: 1, sm: 1.5 }
+                  }}>
+                    {stock.exchange}
+                  </TableCell>
                   <TableCell align="right" sx={{
-                    p: 1
+                    py: { xs: 0.5, sm: 1 }, // Reduced padding
+                    px: { xs: 0.5, sm: 1 },
+                    width: { xs: '80px', sm: 'auto' }
                   }}>
                     <Tooltip title="View stock details and trade" placement="bottom" arrow>
                       <Button
                         size="small"
-                        onClick={() => handleSelectStock(stock)}
+                        onClick={!isMobile ? () => handleSelectStock(stock) : undefined} // Only handle click on desktop
+                        disabled={stockDetailsLoading}
                         sx={{
-                          minWidth: 'auto',
-                          px: 2,
-                          py: 0.75,
+                          minWidth: { xs: '50px', sm: 'auto' }, // Smaller button on mobile
+                          px: { xs: 1, sm: 2 },
+                          py: { xs: 0.5, sm: 0.75 },
                           borderRadius: '20px',
-                          fontSize: '0.8125rem',
+                          fontSize: { xs: '0.7rem', sm: '0.8125rem' }, // Smaller font on mobile
                           fontWeight: 600,
                           textTransform: 'none',
                           backgroundColor: theme => theme.palette.mode === 'dark'
@@ -417,7 +486,8 @@ export default function Market() {
                           },
                         }}
                       >
-                        Trade
+                        {stockDetailsLoading ?
+                          <CircularProgress size={14} color="inherit" /> : 'Trade'}
                       </Button>
                     </Tooltip>
                   </TableCell>
@@ -429,81 +499,26 @@ export default function Market() {
       )}
 
       {selectedStock && (
-        <Dialog
+        <StockDialog
           open={Boolean(selectedStock)}
           onClose={() => {
             setSelectedStock(null);
             setStockDetails(null);
           }}
-          maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: '12px',
-              backgroundImage: theme => theme.palette.mode === 'dark'
-                ? 'linear-gradient(145deg, #2d2d2d 0%, #1f1f1f 100%)'
-                : 'linear-gradient(145deg, #ffffff 0%, #f7f9fc 100%)',
-              boxShadow: theme => theme.palette.mode === 'dark'
-                ? '0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(66, 153, 225, 0.15)'
-                : '0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05)',
-              border: theme => theme.palette.mode === 'dark'
-                ? '1px solid rgba(255, 255, 255, 0.1)'
-                : 'none',
-            }
-          }}
-        >
-          <DialogTitle sx={{
-            background: theme => theme.palette.mode === 'dark'
-              ? 'rgba(255, 255, 255, 0.03)'
-              : 'rgba(0, 0, 0, 0.01)',
-            borderBottom: theme => `1px solid ${theme.palette.divider}`,
-            py: 1.5,
-            px: 2.5
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {selectedStock.longname || selectedStock.shortname} ({selectedStock.symbol})
-                </Typography>
-                <WatchlistToggle stock={selectedStock} />
-              </Box>
-              <IconButton
-                onClick={() => {
-                  setSelectedStock(null);
-                  setStockDetails(null);
-                }}
-                sx={{
-                  borderRadius: '8px',
-                  '&:hover': {
-                    backgroundColor: theme => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.08)'
-                      : 'rgba(0, 0, 0, 0.04)',
-                  }
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
-            </Box>
-          </DialogTitle>
-
-          <DialogContent sx={{ p: { xs: 2, sm: 3 }, mt: 1 }}>
-            <StockDetails
-              stock={selectedStock}
-              stockDetails={stockDetails}
-              loading={loading}
-              tradeType={tradeType}
-              setTradeType={setTradeType}
-              quantity={quantity}
-              setQuantity={setQuantity}
-              portfolio={portfolio}
-              onBuy={handleBuyStock}
-              onSell={handleSellStock}
-              calculateMaxBuyQuantity={calculateMaxBuyQuantity}
-              calculateTransactionAmount={calculateTransactionAmount}
-              showPortfolioInfo={true}
-            />
-          </DialogContent>
-        </Dialog>
+          selectedStock={selectedStock}
+          stockDetails={stockDetails}
+          loading={stockDetailsLoading}
+          tradeType={tradeType}
+          setTradeType={setTradeType}
+          quantity={quantity}
+          setQuantity={setQuantity}
+          portfolio={portfolio}
+          onBuy={handleBuyStock}
+          onSell={handleSellStock}
+          calculateMaxBuyQuantity={calculateMaxBuyQuantity}
+          calculateTransactionAmount={calculateTransactionAmount}
+          showPortfolioInfo={true}
+        />
       )}
 
       {/* Watchlist */}
@@ -516,12 +531,12 @@ export default function Market() {
               onClick={() => setShowWatchlist(!showWatchlist)}
               endIcon={showWatchlist ? <VisibilityOffIcon /> : <VisibilityIcon />}
               sx={{
-                minWidth: 'auto',
-                px: 2,
-                py: 0.75,
-                borderRadius: '20px',
+                minWidth: { xs: 'auto', sm: 'auto' },
+                px: { xs: 1.5, sm: 2 }, // Less horizontal padding on mobile
+                py: { xs: 0.5, sm: 0.75 }, // Less vertical padding on mobile
+                borderRadius: { xs: '16px', sm: '20px' }, // Smaller border radius on mobile
                 fontWeight: 600,
-                fontSize: '0.875rem',
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, // Smaller font on mobile
                 textTransform: 'none',
                 backgroundColor: theme => theme.palette.mode === 'dark'
                   ? 'rgba(66, 153, 225, 0.08)'
@@ -532,6 +547,12 @@ export default function Market() {
                 border: 'none',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
                 transition: 'all 0.2s',
+                '& .MuiButton-endIcon': {
+                  ml: { xs: 0.5, sm: 1 }, // Less margin between text and icon on mobile
+                  '& .MuiSvgIcon-root': {
+                    fontSize: { xs: '1rem', sm: '1.25rem' } // Smaller icon on mobile
+                  }
+                },
                 '&:hover': {
                   backgroundColor: theme => theme.palette.mode === 'dark'
                     ? 'rgba(66, 153, 225, 0.16)'

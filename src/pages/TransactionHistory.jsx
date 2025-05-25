@@ -30,16 +30,16 @@ export default function TransactionHistory() {
     dateFrom: null,
     dateTo: null
   });
-  
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+
   useEffect(() => {
     async function fetchTransactions() {
       setLoading(true);
       try {
         if (!currentUser) return;
-        
+
         const history = await getTransactionHistory(currentUser.uid);
         setTransactions(history || []);
       } catch (err) {
@@ -49,32 +49,32 @@ export default function TransactionHistory() {
         setLoading(false);
       }
     }
-    
+
     fetchTransactions();
   }, [currentUser]);
-  
+
   // Apply filters to transactions
   const filteredTransactions = transactions.filter(transaction => {
     // Type filter
     if (filters.type !== 'all' && transaction.type !== filters.type) {
       return false;
     }
-    
+
     // Symbol filter
-    if (filters.symbol && 
-        !transaction.symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
+    if (filters.symbol &&
+      !transaction.symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
       return false;
     }
-    
+
     // Date range filter
-    const transactionDate = transaction.date instanceof Date 
-      ? transaction.date 
+    const transactionDate = transaction.date instanceof Date
+      ? transaction.date
       : new Date(transaction.date.seconds * 1000);
-    
+
     if (filters.dateFrom && transactionDate < filters.dateFrom) {
       return false;
     }
-    
+
     if (filters.dateTo) {
       const endOfDay = new Date(filters.dateTo);
       endOfDay.setHours(23, 59, 59, 999);
@@ -82,27 +82,27 @@ export default function TransactionHistory() {
         return false;
       }
     }
-    
+
     return true;
   });
-  
+
   // Sort transactions by date (newest first)
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     const dateA = a.date instanceof Date ? a.date : new Date(a.date.seconds * 1000);
     const dateB = b.date instanceof Date ? b.date : new Date(b.date.seconds * 1000);
     return dateB - dateA;
   });
-  
+
   // Get unique symbols for filter dropdown
   const symbols = [...new Set(transactions.map(t => t.symbol))];
-  
+
   // Helper function to format date in EST
   function formatDateEST(date) {
     const dateObj = date instanceof Date ? date : new Date(date.seconds * 1000);
     // return formatInTimeZone(dateObj, 'America/New_York', 'MMM d, yyyy - h:mm a z');
     return formatInTimeZone(dateObj, 'America/New_York', 'MMM d, yyyy');
   }
-  
+
   // Clear all filters
   const clearFilters = () => {
     setFilters({
@@ -112,19 +112,17 @@ export default function TransactionHistory() {
       dateTo: null
     });
   };
-  
+
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1" sx={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          fontSize: { xs: '1.5rem', sm: '2.125rem' } 
-        }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4" component="h1" sx={{
+                            fontSize: { xs: '1.5rem', sm: '2.125rem' }  
+                        }}>
           Transaction History
         </Typography>
-        
-        <IconButton 
+
+        <IconButton
           onClick={() => setFilterOpen(!filterOpen)}
           color="primary"
           aria-label="toggle filters"
@@ -133,7 +131,7 @@ export default function TransactionHistory() {
           {filterOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
         </IconButton>
       </Box>
-      
+
       {/* Main Content */}
       <TableContainer component={Paper} sx={{ position: 'relative' }}>
         {/* Filter Row */}
@@ -146,58 +144,58 @@ export default function TransactionHistory() {
                 </IconButton>
               )}
             </Box>
-            
-            <Box sx={{ 
-              display: 'grid', 
+
+            <Box sx={{
+              display: 'grid',
               gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
-              gap: 2 
+              gap: 2
             }}>
               <TextField
                 select
                 size="small"
                 label="Transaction Type"
                 value={filters.type}
-                onChange={(e) => setFilters({...filters, type: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
               >
                 <MenuItem value="all">All Types</MenuItem>
                 <MenuItem value="buy">Buy</MenuItem>
                 <MenuItem value="sell">Sell</MenuItem>
               </TextField>
-              
+
               <TextField
                 select
                 size="small"
                 label="Stock Symbol"
                 value={filters.symbol}
-                onChange={(e) => setFilters({...filters, symbol: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, symbol: e.target.value })}
               >
                 <MenuItem value="">All Stocks</MenuItem>
                 {symbols.map(symbol => (
                   <MenuItem key={symbol} value={symbol}>{symbol}</MenuItem>
                 ))}
               </TextField>
-              
+
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                   label="From Date"
                   value={filters.dateFrom}
-                  onChange={(date) => setFilters({...filters, dateFrom: date})}
+                  onChange={(date) => setFilters({ ...filters, dateFrom: date })}
                   slotProps={{ textField: { fullWidth: true, size: 'small' } }}
                 />
               </LocalizationProvider>
-              
+
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                   label="To Date"
                   value={filters.dateTo}
-                  onChange={(date) => setFilters({...filters, dateTo: date})}
+                  onChange={(date) => setFilters({ ...filters, dateTo: date })}
                   slotProps={{ textField: { fullWidth: true, size: 'small' } }}
                 />
               </LocalizationProvider>
             </Box>
           </Box>
         </Collapse>
-        
+
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
             <CircularProgress />
@@ -209,22 +207,44 @@ export default function TransactionHistory() {
             </Typography>
           </Box>
         ) : (
-          <CustomTable size={isMobile ? "small" : "medium"} sx={{ minWidth: 650 }}>
+          <CustomTable size="small" sx={{ minWidth: isMobile ? 320 : 650 }}>
             <TableHead>
-              <TableRow>
-                <TableCell>Type</TableCell>
-                <TableCell>Symbol</TableCell>
-                <TableCell>Company</TableCell>
-                <TableCell align="right">Shares</TableCell>
-                <TableCell align="right">Price</TableCell>
-                <TableCell align="right">Total</TableCell>
-                <TableCell align="right">Date</TableCell>
+              <TableRow sx={{
+                backgroundColor: theme => theme.palette.mode === 'dark'
+                  ? 'rgba(255,255,255,0.05)'
+                  : 'rgba(0,0,0,0.02)'
+              }}>
+                {isMobile ? (
+                  // Mobile headers - only 3 columns
+                  <>
+                    <TableCell sx={{ fontSize: '0.7rem', fontWeight: 'bold', py: 1, px: 1 }}>
+                      Transaction
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontSize: '0.7rem', fontWeight: 'bold', py: 1, px: 1 }}>
+                      Shares
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontSize: '0.7rem', fontWeight: 'bold', py: 1, px: 1 }}>
+                      Total
+                    </TableCell>
+                  </>
+                ) : (
+                  // Desktop headers - all columns
+                  <>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Symbol</TableCell>
+                    <TableCell>Company</TableCell>
+                    <TableCell align="right">Shares</TableCell>
+                    <TableCell align="right">Price</TableCell>
+                    <TableCell align="right">Total</TableCell>
+                    <TableCell align="right">Date</TableCell>
+                  </>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
               {sortedTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={isMobile ? 3 : 7} align="center" sx={{ py: 3 }}>
                     <Typography color="text.secondary">
                       No transactions match your filters
                     </Typography>
@@ -233,48 +253,127 @@ export default function TransactionHistory() {
               ) : (
                 sortedTransactions.map((transaction, index) => {
                   const isBuy = transaction.type === 'buy';
-                  
+
                   return (
-                    <TableRow 
+                    <TableRow
                       key={index}
                       hover
-                      sx={{ 
+                      sx={{
                         '&:last-child td, &:last-child th': { border: 0 },
-                        borderLeft: `4px solid ${isBuy ? theme.palette.success.main : theme.palette.error.main}`
+                        borderLeft: `3px solid ${isBuy ? theme.palette.success.main : theme.palette.error.main}`,
+                        '&:hover': {
+                          backgroundColor: theme => theme.palette.mode === 'dark'
+                            ? 'rgba(255,255,255,0.05)'
+                            : 'rgba(0,0,0,0.02)'
+                        }
                       }}
                     >
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          {isBuy ? (
-                            <ShoppingCartIcon 
-                              fontSize="small" 
-                              sx={{ mr: 1, color: theme.palette.success.main }} 
-                            />
-                          ) : (
-                            <SellIcon 
-                              fontSize="small" 
-                              sx={{ mr: 1, color: theme.palette.error.main }} 
-                            />
-                          )}
-                          {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>{transaction.symbol}</TableCell>
-                      <TableCell>{transaction.companyName}</TableCell>
-                      <TableCell align="right">{transaction.quantity}</TableCell>
-                      <TableCell align="right">${transaction.price.toFixed(2)}</TableCell>
-                      <TableCell 
-                        align="right"
-                        sx={{ 
-                          fontWeight: 'bold',
-                          color: isBuy ? theme.palette.success.main : theme.palette.error.main
-                        }}
-                      >
-                        ${transaction.total.toFixed(2)}
-                      </TableCell>
-                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                        {formatDateEST(transaction.date)}
-                      </TableCell>
+                      {isMobile ? (
+                        // Mobile layout - compact 3 columns
+                        <>
+                          {/* Transaction Info (Type + Symbol + Company + Date) */}
+                          <TableCell sx={{ py: 1, px: 1, minWidth: 0 }}>
+                            <Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                {isBuy ? (
+                                  <ShoppingCartIcon
+                                    fontSize="small"
+                                    sx={{ mr: 0.5, color: theme.palette.success.main, fontSize: '0.9rem' }}
+                                  />
+                                ) : (
+                                  <SellIcon
+                                    fontSize="small"
+                                    sx={{ mr: 0.5, color: theme.palette.error.main, fontSize: '0.9rem' }}
+                                  />
+                                )}
+                                <Typography variant="body2" sx={{ fontSize: '0.85rem', fontWeight: 'bold' }}>
+                                  {transaction.symbol}
+                                </Typography>
+                              </Box>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{
+                                  fontSize: '0.7rem',
+                                  display: 'block',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  maxWidth: '120px'
+                                }}
+                              >
+                                {transaction.companyName}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block' }}>
+                                {formatDateEST(transaction.date)}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+
+                          {/* Shares */}
+                          <TableCell align="right" sx={{ py: 1.5, px: 1 }}>
+                            <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                              {transaction.quantity}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block' }}>
+                              @${transaction.price.toFixed(2)}
+                            </Typography>
+                          </TableCell>
+
+                          {/* Total */}
+                          <TableCell align="right" sx={{ py: 1.5, px: 1 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontSize: '0.85rem',
+                                fontWeight: 'bold',
+                                color: isBuy ? theme.palette.success.main : theme.palette.error.main
+                              }}
+                            >
+                              ${transaction.total.toFixed(2)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', display: 'block' }}>
+                              {isBuy ? 'Buy' : 'Sell'}
+                            </Typography>
+                          </TableCell>
+                        </>
+                      ) : (
+                        // Desktop layout - all columns
+                        <>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              {isBuy ? (
+                                <ShoppingCartIcon
+                                  fontSize="small"
+                                  sx={{ mr: 1, color: theme.palette.success.main }}
+                                />
+                              ) : (
+                                <SellIcon
+                                  fontSize="small"
+                                  sx={{ mr: 1, color: theme.palette.error.main }}
+                                />
+                              )}
+                              {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>{transaction.symbol}</TableCell>
+                          <TableCell>{transaction.companyName}</TableCell>
+                          <TableCell align="right">{transaction.quantity}</TableCell>
+                          <TableCell align="right">${transaction.price.toFixed(2)}</TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{
+                              fontWeight: 'bold',
+                              color: isBuy ? theme.palette.success.main : theme.palette.error.main
+                            }}
+                          >
+                            ${transaction.total.toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                            {formatDateEST(transaction.date)}
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   );
                 })

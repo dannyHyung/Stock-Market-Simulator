@@ -26,7 +26,7 @@ ChartJS.register(
   Filler
 );
 
-export default function PortfolioChart({ portfolioHistory, loading }) {
+export default function PortfolioChart({ portfolioHistory, loading, compact = false }) {
   // Prepare chart data
   const prepareChartData = () => {
     if (!portfolioHistory || portfolioHistory.length === 0) {
@@ -113,9 +113,16 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
       y: {
         beginAtZero: false,
         ticks: {
+          maxTicksLimit: compact ? 4 : 8,
           callback: function (value) {
             return '$' + value.toFixed(2);
           }
+        }
+      },
+      x: {
+        ticks: {
+          maxTicksLimit: compact ? 5 : 10,
+          maxRotation: compact ? 0 : 45,
         }
       }
     },
@@ -123,7 +130,28 @@ export default function PortfolioChart({ portfolioHistory, loading }) {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 4, height: 300 }}>
+    <Paper
+      elevation={3}
+      sx={{
+        p: compact ? 2 : 3,
+        height: '100%',
+        borderRadius: '10px',
+        boxShadow: theme => theme.palette.mode === 'dark'
+          ? '0 0 15px rgba(66, 153, 225, 0.15), 0 0 8px rgba(66, 153, 225, 0.08)'
+          : '0 6px 16px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
+        border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+        transition: 'all 0.2s',
+        background: theme => theme.palette.mode === 'dark'
+          ? 'linear-gradient(145deg, #2d2d2d 0%, #1f1f1f 100%)'
+          : 'linear-gradient(145deg, #ffffff 0%, #f7f9fc 100%)',
+        '&:hover': {
+          boxShadow: theme => theme.palette.mode === 'dark'
+            ? '0 0 20px rgba(66, 153, 225, 0.25), 0 0 10px rgba(66, 153, 225, 0.15)'
+            : '0 10px 20px rgba(0,0,0,0.12), 0 6px 10px rgba(0,0,0,0.08)',
+          border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.15)' : 'none',
+        },
+      }}
+    >
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80%' }}>
           <CircularProgress />
