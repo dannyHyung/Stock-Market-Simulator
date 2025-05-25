@@ -6,7 +6,7 @@
 export function getCurrentPrice(stockDetails) {
   if (!stockDetails) return 0;
 
-  if (stockDetails.marketState === "PREPRE") {
+  if (stockDetails.isAfterHours || stockDetails.marketState === "PREPRE") {
     return stockDetails.postMarketPrice;
   }
   if (stockDetails.marketState === "PRE") {
