@@ -274,7 +274,7 @@ export default function Leaderboard() {
 
                         {/* User Info */}
                         <TableCell sx={{ py: 1, px: 1, minWidth: 0 }}>
-                          <Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Typography variant="body2" sx={{
                               fontSize: '0.9rem',
                               fontWeight: 'bold',
@@ -297,11 +297,12 @@ export default function Leaderboard() {
                                 sx={{
                                   height: '16px',
                                   fontSize: '0.6rem',
-                                  mt: 0.25,
+                                  ml: 0.5,
                                   '& .MuiChip-label': { px: 0.5 }
                                 }}
                               />
                             )}
+                            </Box>
                             <Typography variant="caption" color="text.secondary" sx={{
                               fontSize: '0.7rem',
                               display: 'block',
@@ -310,7 +311,6 @@ export default function Leaderboard() {
                             }}>
                               {entry.stockCount} stock{entry.stockCount <= 1 ? "" : "s"} • ${entry.cash.toFixed(0)} cash
                             </Typography>
-                          </Box>
                         </TableCell>
 
                         {/* Portfolio Value */}
