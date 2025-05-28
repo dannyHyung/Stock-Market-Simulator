@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getLeaderboard, getUserPortfolio } from '../services/firestore';
+import { getLeaderboard } from '../services/firestore';
 import { getUserDisplayNames } from '../services/users';
 import { useAuth } from '../contexts/AuthContext';
 import CustomTable from '../components/UI/CustomTable';
@@ -38,6 +38,7 @@ export default function Leaderboard() {
   const [selectedUserPortfolio, setSelectedUserPortfolio] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogLoading, setDialogLoading] = useState(false);
+  const [portfolioDataMap, setPortfolioDataMap] = useState({});
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -47,8 +48,6 @@ export default function Leaderboard() {
     try {
       setLoading(true);
       setError('');
-
-      // This might take a bit longer now due to real-time price fetching
       const data = await getLeaderboard();
 
       // Get display names for all users
@@ -57,6 +56,14 @@ export default function Leaderboard() {
 
       setLeaderboardData(data);
       setUserDisplayNames(displayNames);
+      
+      // Store the full portfolio data for reuse in dialogs
+      const portfolioMap = {};
+      data.forEach(entry => {
+        portfolioMap[entry.userId] = entry.fullPortfolio;
+      });
+      setPortfolioDataMap(portfolioMap);
+
     } catch (err) {
       console.error('Error fetching leaderboard:', err);
       setError('Failed to load leaderboard data');
@@ -85,10 +92,18 @@ export default function Leaderboard() {
     setDialogLoading(true);
 
     try {
-      const portfolio = await getUserPortfolio(userId);
-      setSelectedUserPortfolio(portfolio);
+      // Use the already fetched data!
+      const portfolio = portfolioDataMap[userId];
+      
+      if (portfolio) {
+        setSelectedUserPortfolio(portfolio);
+      } else {
+        // Fallback: fetch if somehow not available
+        const freshPortfolio = await getUserPortfolio(userId);
+        setSelectedUserPortfolio(freshPortfolio);
+      }
     } catch (error) {
-      console.error('Error fetching user portfolio:', error);
+      console.error('Error getting user portfolio:', error);
     } finally {
       setDialogLoading(false);
     }
@@ -302,15 +317,15 @@ export default function Leaderboard() {
                                 }}
                               />
                             )}
-                            </Box>
-                            <Typography variant="caption" color="text.secondary" sx={{
-                              fontSize: '0.7rem',
-                              display: 'block',
-                              lineHeight: 1.2,
-                              mt: 0.25
-                            }}>
-                              {entry.stockCount} stock{entry.stockCount <= 1 ? "" : "s"} • ${entry.cash.toFixed(0)} cash
-                            </Typography>
+                          </Box>
+                          <Typography variant="caption" color="text.secondary" sx={{
+                            fontSize: '0.7rem',
+                            display: 'block',
+                            lineHeight: 1.2,
+                            mt: 0.25
+                          }}>
+                            {entry.stockCount} stock{entry.stockCount <= 1 ? "" : "s"} • ${entry.cash.toFixed(0)} cash
+                          </Typography>
                         </TableCell>
 
                         {/* Portfolio Value */}
@@ -410,7 +425,6 @@ export default function Leaderboard() {
         )}
       </Paper>
 
-      {/* User Portfolio Dialog */}
       {/* User Portfolio Dialog */}
       <Dialog
         open={dialogOpen}
@@ -528,7 +542,7 @@ export default function Leaderboard() {
                             elevation: 2,
                           }}>
                             <Typography variant="subtitle2" color="text.secondary" sx={{
-                              fontSize:'0.875rem'
+                              fontSize: '0.875rem'
                             }}>
                               Stocks Owned
                             </Typography>

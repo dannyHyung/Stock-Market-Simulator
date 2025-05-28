@@ -214,34 +214,36 @@ export default function Watchlist({ onSelectStock }) {
                 px: { xs: 0.5, sm: 2 }
               }}>
                 {change !== 0 && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-end',
-                      color: change >= 0 ? green[500] : red[500]
-                    }}
-                  >
-                    {change >= 0 ? (
-                      <ArrowDropUpIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
-                    ) : (
-                      <ArrowDropDownIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
-                    )}
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Typography variant="body2" sx={{
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                        fontWeight: 'bold',
-                        lineHeight: 1.2
-                      }}>
+                  <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    mr : isMobile ? 1.5 : 0
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                      {change >= 0 ? (
+                        <ArrowDropUpIcon sx={{ color: green[500], fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                      ) : (
+                        <ArrowDropDownIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                      )}
+                      <Typography variant="body2"
+                        color={change >= 0 ? green[500] : red[500]}
+                        sx={{
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                          fontWeight: 'bold',
+                          lineHeight: 1.5
+                        }}>
                         {change.toFixed(2)}
                       </Typography>
-                      <Typography variant="caption" sx={{
+                    </Box>
+                    <Typography variant="caption"
+                      color={change >= 0 ? green[500] : red[500]}
+                      sx={{
                         fontSize: { xs: '0.65rem', sm: '0.75rem' },
                         lineHeight: 1
                       }}>
-                        ({changePercent.toFixed(2)}%)
-                      </Typography>
-                    </Box>
+                      ({changePercent.toFixed(2)}%)
+                    </Typography>
                   </Box>
                 )}
               </TableCell>
@@ -261,6 +263,6 @@ export default function Watchlist({ onSelectStock }) {
           );
         })}
       </TableBody>
-    </CustomTable>
+    </CustomTable >
   );
 }

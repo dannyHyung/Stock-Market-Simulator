@@ -191,15 +191,14 @@ export async function getLeaderboard() {
     const portfoliosRef = collection(db, "portfolios");
     const portfoliosSnap = await getDocs(portfoliosRef);
 
-    // First, collect all unique stock symbols across all portfolios
+    // Collect portfolio data and unique stock symbols
     const allStockSymbols = new Set();
     const portfolioData = [];
 
     portfoliosSnap.forEach(docSnap => {
         const data = docSnap.data();
         const userId = docSnap.id;
-
-        // Collect all stock symbols
+        
         data.stocks.forEach(stock => {
             allStockSymbols.add(stock.symbol);
         });
@@ -211,30 +210,30 @@ export async function getLeaderboard() {
         });
     });
 
-    // Fetch current prices for all stocks at once
+    // Fetch current prices for all stocks
     const currentPrices = {};
     if (allStockSymbols.size > 0) {
         try {
             const stockPrices = await getMultipleStockPrices([...allStockSymbols]);
-
-            // Format the prices for easy lookup
-            Object.keys(stockPrices).forEach(symbol => {
-                const stockData = stockPrices[symbol];
-                // Use the most current price available
+            
+            Object.entries(stockPrices).forEach(([symbol, stockData]) => {
                 currentPrices[symbol] = getCurrentPrice(stockData);
             });
         } catch (error) {
-            console.error('Error fetching current stock prices for leaderboard:', error);
-            // Fallback to stored prices if API fails
+            console.error('Error fetching stock prices for leaderboard:', error);
         }
     }
 
-    // Calculate real-time portfolio values
+    // Calculate portfolio values and store complete portfolio data
     const leaderboard = portfolioData.map(portfolio => {
-        const stocksValue = portfolio.stocks.reduce((total, stock) => {
-            // Use current price if available, otherwise fall back to stored price
-            const currentPrice = currentPrices[stock.symbol] || stock.currentPrice || stock.averagePrice;
-            return total + (stock.quantity * currentPrice);
+        // Update stocks with current prices
+        const updatedStocks = portfolio.stocks.map(stock => ({
+            ...stock,
+            currentPrice: currentPrices[stock.symbol] || stock.currentPrice || stock.averagePrice
+        }));
+
+        const stocksValue = updatedStocks.reduce((total, stock) => {
+            return total + (stock.quantity * stock.currentPrice);
         }, 0);
 
         const totalValue = portfolio.cash + stocksValue;
@@ -244,13 +243,18 @@ export async function getLeaderboard() {
             cash: portfolio.cash,
             stocksValue,
             totalValue,
-            stockCount: portfolio.stocks.length
+            stockCount: portfolio.stocks.length,
+            // Include the full portfolio data with current prices
+            fullPortfolio: {
+                cash: portfolio.cash,
+                stocks: updatedStocks
+            }
         };
     });
 
-    // Sort by total value (highest first)
     return leaderboard.sort((a, b) => b.totalValue - a.totalValue);
 }
+
 // Update stock prices in portfolio
 export async function updateStockPrices(userId, stockPrices) {
     const portfolioRef = doc(db, "portfolios", userId);
