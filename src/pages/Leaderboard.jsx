@@ -56,7 +56,7 @@ export default function Leaderboard() {
 
       setLeaderboardData(data);
       setUserDisplayNames(displayNames);
-      
+
       // Store the full portfolio data for reuse in dialogs
       const portfolioMap = {};
       data.forEach(entry => {
@@ -94,7 +94,7 @@ export default function Leaderboard() {
     try {
       // Use the already fetched data!
       const portfolio = portfolioDataMap[userId];
-      
+
       if (portfolio) {
         setSelectedUserPortfolio(portfolio);
       } else {
@@ -280,7 +280,7 @@ export default function Leaderboard() {
                                 filter: 'drop-shadow(0 0 3px rgba(255,215,0,0.3))'
                               }} />
                             ) : (
-                              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem', ml: 0.7}}>
                                 {index + 1}
                               </Typography>
                             )}
@@ -627,7 +627,7 @@ export default function Leaderboard() {
                                   // Mobile layout - 3 columns
                                   <>
                                     {/* Stock Info */}
-                                    <TableCell sx={{ py: 1.5, px: 1.5, minWidth: 0 }}>
+                                    <TableCell sx={{ py: 1, px: 1, minWidth: 0 }}>
                                       <Box>
                                         <Typography variant="body2" sx={{
                                           fontSize: '0.9rem',
@@ -640,11 +640,10 @@ export default function Leaderboard() {
                                           variant="caption"
                                           color="text.secondary"
                                           sx={{
-                                            fontSize: '0.7rem',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
+                                            fontSize: '0.6rem',
                                             maxWidth: '120px',
-                                            lineHeight: 1.2
+                                            lineHeight: 1.3, 
+                                            display: 'block',
                                           }}
                                         >
                                           {stock.companyName}
@@ -652,7 +651,7 @@ export default function Leaderboard() {
                                         <Typography variant="caption" color="text.secondary" sx={{
                                           fontSize: '0.65rem',
                                           display: 'block',
-                                          lineHeight: 1
+                                          lineHeight: 1.5
                                         }}>
                                           @${stock.averagePrice.toFixed(2)}
                                         </Typography>

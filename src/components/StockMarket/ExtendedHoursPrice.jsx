@@ -25,7 +25,7 @@ export default function ExtendedHoursPrice({ stockDetails }) {
       percentChange = stockDetails.postMarketChangePercent;
     } else {
       // Calculate percentage based on regular market price
-      percentChange = (change / stockDetails.regularMarketPrice);
+      percentChange = change / stockDetails.regularMarketPrice * 100;
     }
 
     return (

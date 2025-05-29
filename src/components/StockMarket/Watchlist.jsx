@@ -130,9 +130,21 @@ export default function Watchlist({ onSelectStock }) {
       <TableBody>
         {watchlist.map(stock => {
           const stockData = stockPrices[stock.symbol] || {};
-          const price = stockData.regularMarketPrice || 0;
-          const change = stockData.regularMarketChange || 0;
-          const changePercent = stockData.regularMarketChangePercent || 0;
+
+          let price = 0;
+          let change = 0;
+          let changePercent = 0;
+
+          if (stockData.isAfterHours) {
+            price = stockData.postMarketPrice || stockData.regularMarketPrice || 0;
+            change = stockData.postMarketChange || 0;
+            changePercent =  stockData.postMarketChange ? stockData.postMarketChange / stockData.regularMarketPrice * 100 : 0;
+          } else {
+            // Regular market hours or closed
+            price = stockData.regularMarketPrice || 0;
+            change = stockData.regularMarketChange || 0;
+            changePercent = stockData.regularMarketChangePercent || 0;
+          }
 
           return (
             <TableRow
@@ -218,7 +230,7 @@ export default function Watchlist({ onSelectStock }) {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'flex-end',
-                    mr : isMobile ? 1.5 : 0
+                    mr: isMobile ? 1.5 : 0
                   }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
                       {change >= 0 ? (
@@ -251,7 +263,7 @@ export default function Watchlist({ onSelectStock }) {
               {/* Actions */}
               <TableCell align="right" sx={{
                 py: { xs: 0.5, sm: 1 },
-                px: { xs: 0.5, sm: 1 }
+                px: { xs: 1.5, sm: 1 }
               }}>
                 <WatchlistToggle
                   stock={stock}
