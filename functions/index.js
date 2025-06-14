@@ -24,6 +24,27 @@ const cors = require('cors')({ origin: true });
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 
+async function fetchFromFinnhub(endpoint, params = {}) {
+    if (!FINNHUB_API_KEY) {
+      throw new Error('Finnhub API key not configured');
+    }
+  
+    const url = new URL(`https://finnhub.io/api/v1/${endpoint}`);
+    url.searchParams.append('token', FINNHUB_API_KEY);
+    
+    Object.keys(params).forEach(key => {
+      url.searchParams.append(key, params[key]);
+    });
+  
+    const response = await fetch(url.toString());
+    
+    if (!response.ok) {
+      throw new Error(`Finnhub API error: ${response.status} - ${response.statusText}`);
+    }
+    
+    return await response.json();
+  }
+
 // Get stock quote 
 exports.getStockPrice = functions.https.onRequest((request, response) => {
     cors(request, response, async () => {
@@ -103,6 +124,14 @@ exports.searchStocks = functions.https.onRequest((request, response) => {
 
             // Use Finnhub symbol search
             const searchResults = await fetchFromFinnhub('search', { q: query });
+
+            console.log('Raw Finnhub search results for:', query);
+            console.log('Results:', JSON.stringify(searchResults, null, 2));
+            
+            // Check if we have results
+            if (!searchResults || !searchResults.result) {
+              return response.json([]);
+            }
             
             // Map results to match your frontend expectations
             const mappedResults = searchResults.result
