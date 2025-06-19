@@ -65,6 +65,6 @@ A web application that simulates real stock market trading with real‑time data
 - **Firebase Authentication** — Secure user auth  
 - **Cloud Firestore** — NoSQL database for user data & portfolios  
 - **Cloud Functions** — Serverless functions for API calls & data processing  
-- **Hybrid API Approach:
-    -**Yahoo Finance API — Stock search and symbol lookup
-    -**Finnhub API — Real-time stock prices and market data
+- **Hybrid API Approach:**
+  - **Yahoo Finance API** — Stock search and symbol lookup
+  - **Finnhub API** — Real-time stock prices and market data
